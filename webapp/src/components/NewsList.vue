@@ -5,7 +5,7 @@
         v-bind:title="newsItem.title"
         v-bind:votes="newsItem.votes"
         v-bind:key="newsItem.title"
-        v-on:upvoteItem="upvoteNews" 
+        v-on:upvoteItem="upvoteNews"
         v-on:downvoteItem="downvoteNews"
         v-on:removeNews="removeNews"
     ></news-item>
@@ -15,7 +15,6 @@
         <button v-on:click="addItem">Insert item</button>
       </form>
     </div>
-      
   </div>
 </template>
 
@@ -26,7 +25,7 @@ import NewsItem from "@/components/NewsItem";
 export default {
   name: "NewsList",
   components: {NewsItem},
-  data: function() {
+  data: function () {
     return {
       newsItems: [
         {title: "Title_1", votes: 0},
@@ -37,22 +36,28 @@ export default {
   },
   methods: {
     upvoteNews(title) {
-      let toBeUpvoted = this.newsItems.find(item => item.title == title)
+      let toBeUpvoted = this.newsItems.find(item => item.title === title)
       toBeUpvoted.votes += 1
-    }, 
+    },
     downvoteNews(title) {
-      let toBeDownvoted = this.newsItems.find(item => item.title == title)
+      let toBeDownvoted = this.newsItems.find(item => item.title === title)
       toBeDownvoted.votes -= 1
     },
     removeNews(title) {
       this.newsItems = this.newsItems.filter(item => item.title !== title)
     },
     addItem() {
-      this.newsItems.push({title: this.newItemTitle, votes: 0});
+      if (
+          this.newItemTitle.length !== 0 &&
+          this.newsItems.filter(item => item.title === this.newItemTitle).length === 0
+      ) {
+        this.newsItems.push({title: this.newItemTitle, votes: 0});
+        this.newItemTitle = ""
+      }
     }
   },
   computed: {
-    sortedItems: function() {
+    sortedItems: function () {
       return [...this.newsItems].sort((a, b) => b.votes - a.votes);
     }
   }
@@ -61,8 +66,8 @@ export default {
 </script>
 
 <style>
-  .form-div {
-    margin-top: 20px;
-  }
-  
+.form-div {
+  margin-top: 20px;
+}
+
 </style>
