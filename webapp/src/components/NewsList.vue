@@ -1,7 +1,7 @@
 <template>
   <div>
     <news-item
-        v-for="newsItem in newsItems"
+        v-for="newsItem in sortedItems"
         v-bind:title="newsItem.title"
         v-bind:votes="newsItem.votes"
         v-bind:key="newsItem.title"
@@ -38,6 +38,11 @@ export default {
     },
     removeNews(title) {
       this.newsItems = this.newsItems.filter(item => item.title !== title)
+    }
+  },
+  computed: {
+    sortedItems: function() {
+      return [...this.newsItems].sort((a, b) => b.votes - a.votes);
     }
   }
 
