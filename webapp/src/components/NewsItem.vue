@@ -1,9 +1,9 @@
 <template>
   <div>
     <h1>{{ title }} {{ (votes) }}</h1>
-    <button v-on:click="upvote">Upvote</button>
-    <button v-on:click="downvote">Downvote</button>
-    <button v-on:click="remove">Remove</button>
+    <button v-on:click="incrementVotes">Upvote</button>
+    <button v-on:click="decrementVotes">Downvote</button>
+    <button v-on:click="removeMe">Remove</button>
   </div>
 </template>
 
@@ -12,16 +12,15 @@ export default {
   name: "NewsItem",
   props:["title","votes"],
   methods: {
-    upvote: function () {
-      this.$emit("upvoteNews", this)
+    incrementVotes() {
+      this.$emit('upvoteItem', this.title)
     },
-    downvote: function () {
-      this.$emit("downvote", this)
+    decrementVotes() {
+      this.$emit('downvoteItem', this.title)
     },
-    remove: function () {
-      this.$emit("removeItem", this.title)
+    removeMe() {
+      this.$emit('removeNews', this.title)
     }
-
   }
 }
 </script>
