@@ -9,6 +9,13 @@
         v-on:downvoteItem="downvoteNews"
         v-on:removeNews="removeNews"
     ></news-item>
+    <div>
+      <form v-on:submit.prevent>
+        <input v-model="newItemTitle" placeholder="News Item Title here">
+        <button v-on:click="addItem"></button>
+      </form>
+    </div>
+    
   </div>
 </template>
 
@@ -24,7 +31,8 @@ export default {
       newsItems: [
         {title: "Title_1", votes: 0},
         {title: "Title_2", votes: 0}
-      ]
+      ],
+      newItemTitle: "",
     }
   },
   methods: {
@@ -38,6 +46,9 @@ export default {
     },
     removeNews(title) {
       this.newsItems = this.newsItems.filter(item => item.title !== title)
+    },
+    addItem() {
+      this.newsItems.push({title: this.newItemTitle, votes: 0});
     }
   },
   computed: {
