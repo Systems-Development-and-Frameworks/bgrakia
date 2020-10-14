@@ -5,17 +5,17 @@
         v-bind:title="newsItem.title"
         v-bind:votes="newsItem.votes"
         v-bind:key="newsItem.title"
-        v-on:upvoteItem="upvoteNews"
+        v-on:upvoteItem="upvoteNews" 
         v-on:downvoteItem="downvoteNews"
         v-on:removeNews="removeNews"
     ></news-item>
-    <div>
-      <form v-on:submit.prevent>
+    <div class="form-div">
+      <form v-on:submit.prevent class="form">
         <input v-model="newItemTitle" placeholder="News Item Title here">
-        <button v-on:click="addItem"></button>
+        <button v-on:click="addItem">Insert item</button>
       </form>
     </div>
-    
+      
   </div>
 </template>
 
@@ -60,6 +60,9 @@ export default {
 }
 </script>
 
-<style scoped>
-
+<style>
+  .form-div {
+    margin-top: 20px;
+  }
+  
 </style>
