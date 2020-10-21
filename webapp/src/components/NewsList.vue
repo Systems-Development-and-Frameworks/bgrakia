@@ -2,18 +2,17 @@
   <div>
     <news-item
         v-for="newsItem in sortedItems"
-        v-bind:title="newsItem.title"
-        v-bind:votes="newsItem.votes"
+        :newsItem="newsItem"
         v-bind:key="newsItem.title"
-        v-on:upvoteItem="upvoteNews"
-        v-on:downvoteItem="downvoteNews"
-        v-on:removeNews="removeNews"
+        @updateNews="updateNews"
+        @removeNews="removeNews" 
     ></news-item>
     <div class="form-div">
-      <form v-on:submit.prevent class="form">
-        <input v-model="newItemTitle" placeholder="News Item Title here">
-        <button v-on:click="addItem">Insert item</button>
-      </form>
+      <news-form
+      :uniqueTitles="itemTitles"
+      @addItem="addItem"
+      />
+
     </div>
   </div>
 </template>
@@ -21,44 +20,39 @@
 <script>
 
 import NewsItem from "@/components/NewsItem";
+import NewsForm from "@/components/NewsForm";
+// @ = v-on: 
+// : = property passing
 
 export default {
   name: "NewsList",
-  components: {NewsItem},
+  components: {NewsItem, NewsForm},
   data: function () {
     return {
       newsItems: [
         {title: "Title_1", votes: 0},
         {title: "Title_2", votes: 0}
       ],
-      newItemTitle: "",
     }
   },
   methods: {
-    upvoteNews(title) {
-      let toBeUpvoted = this.newsItems.find(item => item.title === title)
-      toBeUpvoted.votes += 1
-    },
-    downvoteNews(title) {
-      let toBeDownvoted = this.newsItems.find(item => item.title === title)
-      toBeDownvoted.votes -= 1
+    updateNews(item) {
+      let current = this.newsItems.findIndex(newsItem => newsItem.title === item.title);
+      this.newsItems.splice(current, 1, item);
     },
     removeNews(title) {
       this.newsItems = this.newsItems.filter(item => item.title !== title)
     },
-    addItem() {
-      if (
-          this.newItemTitle.length !== 0 &&
-          this.newsItems.filter(item => item.title === this.newItemTitle).length === 0
-      ) {
-        this.newsItems.push({title: this.newItemTitle, votes: 0});
-        this.newItemTitle = ""
-      }
+    addItem(title) {
+      this.newsItems.push({title: title, votes: 0});
     }
   },
   computed: {
     sortedItems: function () {
       return [...this.newsItems].sort((a, b) => b.votes - a.votes);
+    },
+    itemTitles: function () {
+      return this.newsItems.map(item => item.title);
     }
   }
 
