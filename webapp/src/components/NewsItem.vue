@@ -26,7 +26,7 @@ export default {
       this.$emit('downvoteItem', this)
     },
     removeMe() {
-      this.$emit('removeNews', this.title)
+      this.$emit('removeNews', this.newsItem.title)
     }
   }
 }
