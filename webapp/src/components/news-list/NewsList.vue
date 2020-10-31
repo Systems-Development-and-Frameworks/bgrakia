@@ -19,8 +19,8 @@
 
 <script>
 
-import NewsItem from "@/components/NewsItem";
-import NewsForm from "@/components/NewsForm";
+import NewsItem from "@/components/news-item/NewsItem";
+import NewsForm from "@/components/news-form/NewsForm";
 
 export default {
   name: "NewsList",
