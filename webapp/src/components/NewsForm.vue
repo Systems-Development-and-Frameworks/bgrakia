@@ -1,5 +1,5 @@
 <template>
-    <form @submit.prevent class="form">
+    <form @submit.prevent>
         <input v-model="newItemTitle" placeholder="News Item Title here">
         <button @click="addItem">Insert item</button>
     </form>
