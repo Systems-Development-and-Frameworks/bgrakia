@@ -16,7 +16,7 @@ export default {
     },
     methods: {
         addItem() {
-            let isEmpty = this.newItemTitle.length;
+            let isEmpty = !! this.newItemTitle.length;
             let isPresent = this.uniqueTitles.includes(this.newItemTitle);
             if (isPresent || !isEmpty) {
                 alert("There is an article with this title.");
