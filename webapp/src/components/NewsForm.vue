@@ -1,30 +1,54 @@
 <template>
-    <form @submit.prevent>
-        <input v-model="newItemTitle" placeholder="News Item Title here">
-        <button @click="addItem">Insert item</button>
-    </form>
+  <v-form v-model="valid">
+    <v-container>
+      <v-row>
+        <v-col>
+          <v-text-field
+            v-model="newsTitle"
+            :rules="rules"
+            :counter="64"
+            label="News Title"
+            required
+          ></v-text-field>
+        </v-col>
+      </v-row>
+      <v-row>
+        <v-col>
+          <v-btn
+            class="mr-4"
+            :disabled="!valid"
+            @click="submit"
+          >
+            submit
+          </v-btn>
+        </v-col>
+      </v-row>
+    </v-container>
+  </v-form>
 </template>
+
 
 <script>
 export default {
-    name: "NewsForm",
-    "props": ["uniqueTitles"],
-    data: function() {
-        return {
-            newItemTitle: "",
-        }
+  name: 'NewsForm',
+  'props': ['uniqueTitles'],
+  data: () => ({
+    valid: false,
+    newsTitle: '',
+  }), methods: {
+    submit() {
+      this.$emit('addItem', this.newsTitle);
+      this.newsTitle = '';
     },
-    methods: {
-        addItem() {
-            let isEmpty = !! this.newItemTitle.length;
-            let isPresent = this.uniqueTitles.includes(this.newItemTitle);
-            if (isPresent || !isEmpty) {
-                alert("There is an article with this title.");
-                return;
-            }
-            this.$emit('addItem', this.newItemTitle);
-            this.newItemTitle = "";
-        }
-    }
-}
+  },
+  computed: {
+    rules() {
+      return [
+        v => !!v || 'News-Title is required!',
+        v => v.length <= 64 || 'News-Title must be less than 64 characters!',
+        v => !this.uniqueTitles.includes(v) || 'News-Title already exists. Please enter a unique one!',
+      ];
+    },
+  },
+};
 </script>
