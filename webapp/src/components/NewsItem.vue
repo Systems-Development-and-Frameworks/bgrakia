@@ -18,15 +18,13 @@ export default {
   },
   methods: {
     incrementVotes() {
-      this.newsItem.votes += 1;
-      this.$emit('upvoteItem', this)
+      this.$emit('updateNews', { ...this.newsItem, votes: (this.newsItem.votes + 1)})
     },
     decrementVotes() {
-      this.newsItem.votes -= 1;
-      this.$emit('downvoteItem', this)
+      this.$emit('updateNews', { ...this.newsItem, votes: (this.newsItem.votes - 1)})
     },
     removeMe() {
-      this.$emit('removeNews', this.newsItem.title)
+      this.$emit('removeNews', this.newsItem)
     }
   }
 }

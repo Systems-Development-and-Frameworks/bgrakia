@@ -5,7 +5,7 @@
         :newsItem="newsItem"
         v-bind:key="newsItem.title"
         @updateNews="updateNews"
-        @removeNews="removeNews" 
+        @removeNews="removeNews"
     ></news-item>
     <div class="form-div">
       <news-form
@@ -21,8 +21,6 @@
 
 import NewsItem from "@/components/NewsItem";
 import NewsForm from "@/components/NewsForm";
-// @ = v-on: 
-// : = property passing
 
 export default {
   name: "NewsList",
@@ -36,12 +34,12 @@ export default {
     }
   },
   methods: {
-    updateNews(item) {
-      let current = this.newsItems.findIndex(newsItem => newsItem.title === item.title);
-      this.newsItems.splice(current, 1, item);
+    updateNews(newsToUpdate) {
+      let current = this.newsItems.findIndex(newsItem => newsItem.title === newsToUpdate.title);
+      this.newsItems.splice(current, 1, newsToUpdate);
     },
-    removeNews(title) {
-      this.newsItems = this.newsItems.filter(item => item.title !== title)
+    removeNews(newsToRemove) {
+      this.newsItems = this.newsItems.filter(item => item.title !== newsToRemove.title)
     },
     addItem(title) {
       this.newsItems.push({title: title, votes: 0});
