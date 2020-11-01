@@ -1,7 +1,11 @@
-import NewsList from './NewsList.vue';
-import NewsItem from '../news-item/NewsItem.vue';
-import NewsForm from '../news-form/NewsForm.vue';
 import 'vuetify/dist/vuetify.css';
+import Vue from 'vue';
+import Vuetify from 'vuetify';
+import NewsList from './NewsList.vue';
+import NewsItem from "@/components/news-item/NewsItem.vue";
+import NewsForm from "@/components/news-form/NewsForm.vue";
+
+Vue.use(Vuetify);
 
 export default {
     title: 'Components/NewsList',
@@ -11,7 +15,7 @@ export default {
 
 const Template = (args, { argTypes }) => ({
     props: Object.keys(argTypes),
-    components: { NewsList, NewsItem, NewsForm },
+    components: { NewsList },
     template:
       '<news-list />',
 });
