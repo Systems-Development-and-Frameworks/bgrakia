@@ -4,6 +4,7 @@
       <v-row>
         <v-col>
           <v-text-field
+			id="newsTitle"
             v-model="newsTitle"
             :rules="rules"
             :counter="64"
@@ -15,6 +16,7 @@
       <v-row>
         <v-col>
           <v-btn
+			id="adder"
             class="mr-4"
             :disabled="!valid"
             @click="submit"
@@ -31,7 +33,7 @@
 <script>
 export default {
   name: 'NewsForm',
-  'props': ['uniqueTitles'],
+  props: ['uniqueTitles'],
   data: () => ({
     valid: false,
     newsTitle: '',
