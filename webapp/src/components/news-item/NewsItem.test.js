@@ -10,22 +10,6 @@ const VOTES = 0;
 
 describe('NewsItem', () => {
 
-  it('should set news from parent as props', () => {
-    const title = 'Test-Title';
-    const votes = 0;
-    const wrapper = mount(NewsItem, {
-      propsData: {
-        newsItem: {
-          title: title,
-          votes: votes,
-        },
-      },
-    });
-
-    expect(wrapper.props().newsItem.title).toBe(title);
-    expect(wrapper.props().newsItem.votes).toBe(votes);
-
-  });
 
   it('should show a h1 with news-title/news-votes and three buttons for upVote, downVote and remove', () => {
     const title = 'Test-Title';
