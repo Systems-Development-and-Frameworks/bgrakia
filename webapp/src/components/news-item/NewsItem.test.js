@@ -33,9 +33,9 @@ describe('NewsItem', () => {
     expect(actualH1).toBeDefined();
     expect(actualH1.text()).toEqual(expectedText);
 
-    expect(actualUpvoteButton).toBeDefined();
-    expect(actualDownvoteButton).toBeDefined();
-    expect(actualRemoveButton).toBeDefined();
+    expect(actualUpvoteButton.exists()).toBe(true);
+    expect(actualDownvoteButton.exists()).toBe(true);
+    expect(actualRemoveButton.exists()).toBe(true);
 
   });
 
