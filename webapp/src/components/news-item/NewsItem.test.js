@@ -76,9 +76,7 @@ describe('NewsItem', () => {
     });
 
     const button = wrapper.find('button.downvote');
-    button.trigger('click');
-
-    await wrapper.vm.$nextTick();
+    await button.trigger('click');
 
     const expectedCallCount = 1;
     const upvoteEvent = wrapper.emitted().updateNews;
