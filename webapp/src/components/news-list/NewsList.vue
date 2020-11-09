@@ -1,6 +1,6 @@
 <template>
   <div>
-    <div v-if="sortedItems.length == 0">
+    <div v-if="sortedItems.length < 1">
       <h2>The list is empty :(</h2>
     </div>
 
@@ -35,7 +35,10 @@ import NewsForm from '@/components/news-form/NewsForm';
 export default {
   name: 'NewsList',
   components: { NewsItem, NewsForm },
-  data: function() {
+  props: {
+    newsItems: []
+  },
+  /*data: function() {
     return {
       newsItems: [
         { title: 'Title_1', votes: 0 },
@@ -43,7 +46,7 @@ export default {
       ],
       descending: true,
     };
-  },
+  },*/
   methods: {
     updateNews(newsToUpdate) {
       let current = this.newsItems.findIndex(newsItem => newsItem.title === newsToUpdate.title);
