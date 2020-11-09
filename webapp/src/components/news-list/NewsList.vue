@@ -61,9 +61,9 @@ export default {
     toggleSortOrder() {
       this.descending = !this.descending;
     },
-    noNews: function() {
+   /* noNews: function() {
       return this.newsItems.isEmpty();
-    },
+    },*/
   },
   computed: {
     sortedItems: function() {
