@@ -1,4 +1,4 @@
-import {describe, expect, it} from "@jest/globals";
+import {describe, expect, it, beforeEach} from "@jest/globals";
 import {mount, createLocalVue} from "@vue/test-utils";
 import NewsForm from "@/components/news-form/NewsForm";
 
