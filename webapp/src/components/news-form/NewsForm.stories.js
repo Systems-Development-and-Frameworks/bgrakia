@@ -15,8 +15,12 @@ export default {
 
 const Template = (args, {argTypes}) => ({
     components: { NewsForm },
-    template: '<news-form />',
+    template: '<news-form v-bind="$props"/>',
     props: Object.keys(argTypes)
 });
 
 export const Default = Template.bind({});
+
+Default.args = {
+  uniqueTitles: [] // you can create another story with a non empty list as default value
+}

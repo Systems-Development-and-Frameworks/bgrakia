@@ -4,7 +4,6 @@
       <v-row>
         <v-col>
           <v-text-field
-			id="newsTitle"
             v-model="newsTitle"
             :rules="rules"
             :counter="64"
@@ -16,7 +15,6 @@
       <v-row>
         <v-col>
           <v-btn
-			id="adder"
             class="mr-4"
             :disabled="!valid"
             @click="submit"
@@ -33,7 +31,9 @@
 <script>
 export default {
   name: 'NewsForm',
-  props: ['uniqueTitles'],
+  props: {
+	uniqueTitles: { type: Array, required: true }
+  },
   data: () => ({
     valid: false,
     newsTitle: '',
@@ -48,7 +48,7 @@ export default {
       return [
         v => !!v || 'News-Title is required!',
         v => v.length <= 64 || 'News-Title must be less than 64 characters!',
-        v => !this.uniqueTitles.includes(v) || 'News-Title already exists. Please enter a unique one!',
+        //v => !this.uniqueTitles.includes(v) || 'News-Title already exists. Please enter a unique one!',
       ];
     },
   },

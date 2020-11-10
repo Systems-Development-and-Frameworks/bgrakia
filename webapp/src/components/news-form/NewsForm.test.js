@@ -1,61 +1,63 @@
 import {describe, expect, it} from "@jest/globals";
-import {mount} from "@vue/test-utils";
+import {mount, createLocalVue} from "@vue/test-utils";
 import NewsForm from "@/components/news-form/NewsForm";
+
+import Vue from 'vue'
+import Vuetify from 'vuetify'
 
 require('regenerator-runtime/runtime');
 
+const localVue = createLocalVue()
+
+let vuetify
 const itemTitle = "Fake News";
-const itemTitleTooLong = "This Text is longer than the accepted sixtyfour characters!";
+const itemTitleTooLong = "This Text is longer than the accepted sixtyfour characters! 1234567";
 
 describe('NewsForm', () => {
+	let wrapper;
 	
-	/*
-	TODO: 
-	- understand why 'valid' does not change value when setData() is executed
-	- afterwards refactor the test
-	*/
+	beforeEach( () => {
+		Vue.use(Vuetify);
+		vuetify = new Vuetify();
+		wrapper = mount(NewsForm, {
+			localVue,
+			vuetify
+		});
+	})
 	
-	it('should accept less than 64 character', async () => {
+	it('textfield contains the text entered', async () => {
 
-	const wrapper = mount(NewsForm, {
-        data() {
-            return {
-				newsTitle: ''
-            }
-        }
-    });
+	const inputField = wrapper.find('input[type="text"]')
+	await inputField.setValue(itemTitle)
       
-    await wrapper.setData({
-		valid: true,
-        newsTitle: itemTitle
+	expect(inputField.element.value).toBe('Fake News');
+
     });
 	
-	//await wrapper.vm.$nextTick();
-      
-	expect(wrapper.vm.newsTitle).toBe(itemTitle);
-    expect(wrapper.vm.valid).toBe(true);
+	it('does accept less than 64 character', async () => {
 
-    wrapper.destroy();
+	const inputField = wrapper.find('input[type="text"]')
+	const btn = wrapper.find('[type="button"]')
+	
+	await inputField.setValue(itemTitle)
+	await inputField.trigger('input');
+      
+	expect(inputField.element.value).toBe('Fake News');
+	expect(btn.element.disabled).toBe(false);
+
     });
 	
-	it('should not accept more than 64 character', async () => {
-
-	const wrapper = mount(NewsForm, {
-        data() {
-            return {
-				newsTitle: '',
-            }
-        }
-    });
+	it('does not accept more than 64 character', async () => {
       
-	await wrapper.setData({
-        newsTitle: itemTitleTooLong
-    });
+	const inputField = wrapper.find('input[type="text"]')
+	const btn = wrapper.find('[type="button"]')
+	
+	await inputField.setValue(itemTitleTooLong)
+	await inputField.trigger('input');	
       
-	expect(wrapper.vm.newsTitle).toBe(itemTitleTooLong);
-    expect(wrapper.vm.valid).toBe(false);
+	expect(inputField.element.value).toBe('This Text is longer than the accepted sixtyfour characters! 1234567');
+	expect(btn.element.disabled).toBe(true);
 
-    wrapper.destroy();
     });
 	
 })
