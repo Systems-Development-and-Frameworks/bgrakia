@@ -3,22 +3,38 @@ const { RESTDataSource } = require('apollo-datasource-rest');
 class PostsAPI extends RESTDataSource {
   constructor() {
     super();
-    this.baseURL = 'localhost:4000';
+    this.posts = [
+      {
+        title: 'The Thing',
+        votes: 0,
+        author: 'Peter',
+        upvoters:[]
+      },
+      {
+        title: 'The Nothing',
+        votes: 0,
+        author: 'Peter',
+        upvoters:[]
+      },
+    ];
   }
 
   async getPost(title) {
-    return this.get(`posts/${title}`);
+    return this.posts.find(post => post.title === title);
   }
 
   async getPosts() {
-    return this.get(`posts`);
+    return this.posts;
   }
 
-  async getMostVotedPosts(limit = 10) {
-    const data = await this.get('posts', {
-      per_page: limit,
-      order_by: 'votes',
-    });
-    return data.results;
+  async createPost({ title, author }) {
+    this.posts.push({ title: title, author: author, votes: 0 });
+  }
+
+  async putPost(title, user) {
+    let postToUpvote = await this.getPost(title);
+    if (postToUpvote.upvoters.includes(user)) return "Already upvoted"
+    postToUpvote.votes += 1;
+    return "Upvote successful"
   }
 }
