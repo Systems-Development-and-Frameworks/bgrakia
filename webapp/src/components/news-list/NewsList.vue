@@ -36,17 +36,9 @@ export default {
   name: 'NewsList',
   components: { NewsItem, NewsForm },
   props: {
-    newsItems: []
+    newsItems: [],
+    descending: true,
   },
-  /*data: function() {
-    return {
-      newsItems: [
-        { title: 'Title_1', votes: 0 },
-        { title: 'Title_2', votes: 0 },
-      ],
-      descending: true,
-    };
-  },*/
   methods: {
     updateNews(newsToUpdate) {
       let current = this.newsItems.findIndex(newsItem => newsItem.title === newsToUpdate.title);
@@ -61,9 +53,6 @@ export default {
     toggleSortOrder() {
       this.descending = !this.descending;
     },
-   /* noNews: function() {
-      return this.newsItems.isEmpty();
-    },*/
   },
   computed: {
     sortedItems: function() {
