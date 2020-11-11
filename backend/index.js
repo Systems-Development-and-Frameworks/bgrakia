@@ -2,7 +2,7 @@ const { ApolloServer, gql } = require('apollo-server');
 
 const typeDefs = gql`
   type Post {
-    title: String!
+    title: ID!
     votes: Int!
     author: User!
   }
@@ -12,29 +12,20 @@ const typeDefs = gql`
     posts: [Post]
   }
 
-  type Query {
+  type Query{
     posts: [Post]
     users: [User]
   }
 
   type Mutation {
     write(post: PostInput!): Post
-    # 🚀 OPTIONAL
-    # delete(id: ID!): Post
-
-    # ⚠️ FIXME in exercise #4
-    # mock voter until we have authentication
-    upvote(id: ID!, voter: UserInput!): Post
-
-    # 🚀 OPTIONAL
-    # downvote(id: ID!, voter: UserInput!): Post
+    delete(title: ID!): Post
+    upvote(title: ID!, voter: UserInput!): Post
+    downvote(title: ID!, voter: UserInput!): Post
   }
 
   input PostInput {
     title: String!
-
-    # ⚠️ FIXME in exercise #4
-    # mock author until we have authentication
     author: UserInput!
   }
 
@@ -42,3 +33,15 @@ const typeDefs = gql`
     name: String!
   }
 `;
+
+const resolvers = {
+  Query: {
+    posts: () => posts,
+    users: () => users,
+  },
+  Mutation:{
+    write(){
+      posts
+    }
+  }
+};
