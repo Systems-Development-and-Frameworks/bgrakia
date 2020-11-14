@@ -23,3 +23,5 @@ class UsersAPI extends RESTDataSource {
     return this.users;
   }
 }
+
+module.exports = UsersAPI;

@@ -1,6 +1,7 @@
 const { RESTDataSource } = require('apollo-datasource-rest');
 
 class PostsAPI extends RESTDataSource {
+
   constructor() {
     super();
     this.posts = [
@@ -28,13 +29,16 @@ class PostsAPI extends RESTDataSource {
   }
 
   async createPost({ title, author }) {
-    this.posts.push({ title: title, author: author, votes: 0 });
+    let obj = { title: title, author: author, votes: 0, upvoters: []};
+    this.posts.push(obj);
+    return obj;
   }
 
-  async putPost(title, user) {
-    let postToUpvote = await this.getPost(title);
-    if (postToUpvote.upvoters.includes(user)) return "Already upvoted"
-    postToUpvote.votes += 1;
-    return "Upvote successful"
+  async upvotePost(post, upvoter) {
+    post.votes += 1;
+    post.upvoters.push(upvoter);
+    return post;
   }
 }
+
+module.exports = PostsAPI;
