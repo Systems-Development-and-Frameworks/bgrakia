@@ -12,7 +12,12 @@ let postsApi = new PostsAPI();
 const server = new ApolloServer({
     typeDefs, 
     resolvers, 
-    dataSources: () => {usersApi, postsApi}
+    dataSources: () => {
+        return {
+          usersApi: usersApi,
+          postsApi: postsApi
+        }
+    }
 });
 
 const { query, mutate } = createTestClient(server);
@@ -32,22 +37,22 @@ describe("query", () => {
         `;
 
         const {
-        data: { getPosts }
+            data: { posts }
         } = await query({ query: GET_POSTS });
 
-        expect(getPosts).toHaveLength(2);
-        expect(getPosts).toEqual([
+        expect(posts).toHaveLength(2);
+        expect(posts).toEqual([
             {
                 title: 'The Thing',
-                votes: 0,
                 author: {
                     name: "Peter"
                 },
             },
             {
                 title: 'The Nothing',
-                votes: 0,
-                author: 'Peter',
+                author: {
+                    name: "Peter"
+                },
             }
         ]);
     });
@@ -66,12 +71,12 @@ describe("query", () => {
         `;
 
         const {
-            data: { getUsers }
+            data: { users }
         } = await query({ query: GET_USERS });
 
 
-        expect(getUsers).toHaveLength(2);
-        expect(getUsers).toEqual([
+        expect(users).toHaveLength(2);
+        expect(users).toEqual([
             {
                 name: "Peter",
                 posts: [
@@ -100,8 +105,8 @@ describe("write(post: $postInput)", () => {
 
     beforeEach(() => {
         WRITE_POST = gql`
-            mutation WritePost {
-                write($post: PostInput!) {
+            mutation WritePost($post: PostInput!) {
+                write(post: $post) {
                     title, 
                     author {
                         name
@@ -116,7 +121,7 @@ describe("write(post: $postInput)", () => {
             data: { write }
         } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Title1", author: { name: "Max" } } } });
 
-        expect(write).toEqual({title: "Test1", author: {name: "Max"}});
+        expect(write).toEqual({title: "Title1", author: {name: "Max"}});
     });
 
     it("throws error if author creates post with already existent title", async () => {    
@@ -136,13 +141,13 @@ describe("write(post: $postInput)", () => {
     })
 });
 
-describe("upvote(title: $String, voter: $UserInput)", () => {
+describe("upvote(title: String, voter: UserInput!)", () => {
 
     let UPVOTE_POST;
     beforeEach(() => {
         UPVOTE_POST = gql` 
-            mutation UpvotePost {
-                upvote(title: ID!, voter: UserInput!) {
+            mutation UpvotePost($title: ID!, $voter: UserInput!) {
+                upvote(title: $title, voter: $voter) {
                     title, 
                     votes
                 }
@@ -152,10 +157,10 @@ describe("upvote(title: $String, voter: $UserInput)", () => {
 
     it("upvotes a post", async () => {
         const {
-            data: {upvotedPost}
+            data: {upvote}
         } = await mutate({ mutation: UPVOTE_POST, variables: { title: "The Nothing", voter: { name: "Max" } } });
         
-        expect(upvotedPost).toMatchObject({ title: "The Nothing", votes: 1 });
+        expect(upvote).toMatchObject({ title: "The Nothing", votes: 1 });
     });
 
     it("throws error because post does not exist", async () => {
