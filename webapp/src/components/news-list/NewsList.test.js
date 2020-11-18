@@ -22,7 +22,7 @@ require('regenerator-runtime/runtime');
                   {title: "Title_1", votes: 5},
                   {title: "Title_2", votes: 4}
               ],
-              descending: true 
+   //           descending: true 
             }
         })
     }) 
@@ -45,9 +45,8 @@ require('regenerator-runtime/runtime');
 
     const button = wrapper.find('button.sorter');
     button.trigger('click');
-
-    let firstDomElementInAscendingMode = wrapper.find('h1');
-    expect(firstDomElementInAscendingMode.text()).toContain("4");
+    expect(wrapper.vm.descending).toEqual(false);
+    expect(wrapper.vm.sortedItems[0]).toEqual({ title: "Title_2", votes: 4})
   })
 
   it("should add an item to its internal array when the user clicks the submit button and provides a valid title",  async () => {
