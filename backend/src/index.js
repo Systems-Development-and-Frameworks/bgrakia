@@ -1,8 +1,8 @@
 const { ApolloServer } = require('apollo-server');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
-const UsersAPI = require('./userApi');
-const PostsAPI = require('./postApi');
+const UsersAPI = require('./datasources/userApi');
+const PostsAPI = require('./datasources/postApi');
 
 
 // DO NOT initialize the endpoint inside the dataSources function!

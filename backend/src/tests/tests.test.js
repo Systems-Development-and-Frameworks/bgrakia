@@ -1,10 +1,10 @@
 const { createTestClient } = require('apollo-server-testing');
 const { ApolloServer, gql } = require("apollo-server");
 const {beforeEach, describe, expect, it} = require("@jest/globals");
-const PostsAPI = require("./postApi");
-const UsersAPI = require("./userApi");
-const typeDefs = require('./typeDefs');
-const resolvers = require('./resolvers');
+const PostsAPI = require("../datasources/postApi");
+const UsersAPI = require("../datasources/userApi");
+const typeDefs = require('../typeDefs');
+const resolvers = require('../resolvers');
 
 let usersApi = new UsersAPI();
 let postsApi = new PostsAPI();
