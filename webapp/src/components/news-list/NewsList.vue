@@ -37,7 +37,7 @@ export default {
   components: { NewsItem, NewsForm },
   props: {
     newsItems: [],
-    descending: true,
+    descending: {type: Boolean, default: true},
   },
   methods: {
     updateNews(newsToUpdate) {
