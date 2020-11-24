@@ -1,6 +1,6 @@
-const { DataSource } = require('apollo-datasource-rest');
+const { RESTDataSource } = require('apollo-datasource-rest');
 
-class PostsAPI extends DataSource {
+class PostsAPI extends RESTDataSource {
 
   constructor() {
     super();
