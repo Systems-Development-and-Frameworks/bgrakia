@@ -22,11 +22,11 @@ module.exports = {
         };
       }
     },
-    Mutation:{
-      async write(parent, args, { dataSources }) {
+    Mutation: {
+      async write(parent, args, { token, dataSources }) {
         let {
           title, 
-          author: {name}
+        //  author: {name}
         } = args.post;
         
         // Check if a post with the title already exists.
@@ -36,14 +36,14 @@ module.exports = {
         }
   
         // Check if the author exists 
-        let author = await dataSources.usersApi.getUser(name);
+       /* let author = await dataSources.usersApi.getUserById(token.uId);
         if (author === undefined) {
-          throw new UserInputError("No such author.", {invalidArgs: [author]});
-        }
+          throw new UserInputError("No such author.", {invalidArgs: [token.uId]});
+        }*/
   
-        return await dataSources.postsApi.createPost({title, author: name});
+        return await dataSources.postsApi.createPost({ title, author: token.uId });
       },
-      async upvote(parent, args, { dataSources }) {
+      async upvote(parent, args, { token, dataSources }) {
         // Why must we mock the current user? We have him right here, in the voter field?
   
         let postToUpvote = await dataSources.postsApi.getPost(args.title);
@@ -51,17 +51,34 @@ module.exports = {
           throw new UserInputError("Post with this title doesn't exist", {invalidArgs: [args.title]});
         }
   
-        let upvoter = await dataSources.usersApi.getUser(args.voter.name);
+        /*let upvoter = await dataSources.usersApi.getUserById(token.uId);
         if (upvoter === undefined) {
           throw new UserInputError("No such voter.", {invalidArgs: [args.voter]});
-        }
+        }*/
   
-        let alreadyVoted = postToUpvote.upvoters.includes(args.voter.name);
+        let alreadyVoted = postToUpvote.upvoters.includes(token.uId);
         if (alreadyVoted) {
-          throw new UserInputError("This voter has already upvoted this article", {invalidArgs: [args.title, args.voter]});
+          throw new UserInputError("This voter has already upvoted this article", {invalidArgs: [args.title, token.uId]});
         }
   
-        return await dataSources.postsApi.upvotePost(postToUpvote, args.voter.name);
+        return await dataSources.postsApi.upvotePost(postToUpvote, token.uId);
+      },
+      async signup(parent, args, { dataSources }) {
+        const pwdIsNotValid = await !dataSources.usersApi.isPasswordValid(args.password);
+        const emailIsTaken = await dataSources.postsApi.isEmailTaken(args.email);
+        console.log('ENTERED RESOLVER', pwdIsNotValid, emailIsTaken);
+        if (emailIsTaken) {
+          throw new UserInputError("This email is already taken", {invalidArgs: [args.email]});
+        }
+        if (pwdIsNotValid) {
+          throw new UserInputError("Password must be at least 8 characters long.", {invalidArgs: [args.password]});
+        }
+
+        let createdUser = await dataSources.usersApi.createUser(args.name, args.email);
+
+        let token = await dataSources.authApi.createToken(createdUser.id);
+
+        return token;
       }
     }
   };
