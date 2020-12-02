@@ -7,10 +7,10 @@ class AuthAPI extends RESTDataSource {
         super();
     }
 
-
     async createToken(userId) {
-        return jwt.sign({ uId: userId }, process.env.JWT_SECRET, { algorithm: 'HS256' });
+        return jwt.sign({ uId: userId }, process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: '1h' });
     }
+
 }
 
 module.exports = AuthAPI;
