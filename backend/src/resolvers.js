@@ -1,4 +1,4 @@
-const { UserInputError } = require('apollo-server');
+const { UserInputError, AuthenticationError } = require('apollo-server');
 
 module.exports = {
     Query: {
@@ -64,9 +64,8 @@ module.exports = {
         return await dataSources.postsApi.upvotePost(postToUpvote, token.uId);
       },
       async signup(parent, args, { dataSources }) {
-        const pwdIsNotValid = await !dataSources.usersApi.isPasswordValid(args.password);
+        const pwdIsNotValid = await   !dataSources.usersApi.isPasswordValid(args.password);
         const emailIsTaken = await dataSources.usersApi.isEmailTaken(args.email);
-        console.log('ENTERED RESOLVER', pwdIsNotValid, emailIsTaken);
         if (emailIsTaken) {
           throw new UserInputError("This email is already taken", {invalidArgs: [args.email]});
         }
@@ -74,11 +73,22 @@ module.exports = {
           throw new UserInputError("Password must be at least 8 characters long.", {invalidArgs: [args.password]});
         }
 
-        let createdUser = await dataSources.usersApi.createUser(args.name, args.email);
+        let createdUser = await dataSources.usersApi.createUser(args.name, args.email, args.password);
 
         let token = await dataSources.authApi.createToken(createdUser.id);
 
         return token;
-      }
+      },
+
+      async login(parent, args, { dataSources, token }) {
+       const passordIsNotValid = await !dataSources.usersApi.checkPassword(token.uId ,args.password);
+        if (passordIsNotValid) {
+          throw new AuthenticationError("Invalid password!", {invalidArgs: [token.uId]});
+        }
+
+        let token = await dataSources.authApi.createToken(createdUser.id);
+
+        return token;
+      },
     }
   };
