@@ -65,7 +65,7 @@ module.exports = {
       },
       async signup(parent, args, { dataSources }) {
         const pwdIsNotValid = await !dataSources.usersApi.isPasswordValid(args.password);
-        const emailIsTaken = await dataSources.postsApi.isEmailTaken(args.email);
+        const emailIsTaken = await dataSources.usersApi.isEmailTaken(args.email);
         console.log('ENTERED RESOLVER', pwdIsNotValid, emailIsTaken);
         if (emailIsTaken) {
           throw new UserInputError("This email is already taken", {invalidArgs: [args.email]});

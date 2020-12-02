@@ -6,7 +6,7 @@ class AuthAPI extends RESTDataSource {
     constructor() { super(); }
 
     async createToken(userId) {
-        return jwt.sign({ uId: userId }, JWT_SECRET, { algorithm: 'HS256' });
+        return jwt.sign({ uId: userId }, process.env.JWT_SECRET, { algorithm: 'HS256' });
     }
 
     /*async verifyToken(token) {
