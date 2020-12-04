@@ -9,6 +9,7 @@ const permissions = shield({
     User: {
       "*": deny,
       name: allow,
+      posts: allow,
       email: and(isAuthenticated, canSeeEmail),
     },
     Post: {
