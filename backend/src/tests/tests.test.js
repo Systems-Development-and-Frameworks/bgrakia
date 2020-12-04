@@ -59,10 +59,10 @@ beforeEach(async () => {
     atanas_auth_token = await authApi.createToken(userIds[1]);
 
     postsApi.posts = [
-        { title: "Mike's Post 1", votes: 0, author: userIds[0] },
-        { title: "Mike's Post 2", votes: 0, author: userIds[0] },
-        { title: "Atanas's Post 1", votes: 0, author: userIds[1] },
-        { title: "Atanas's Post 2", votes: 0, author: userIds[1] },
+        { title: "Mike's Post 1", votes: 0, upvoters:[], author: userIds[0] },
+        { title: "Mike's Post 2", votes: 0, upvoters:[], author: userIds[0] },
+        { title: "Atanas's Post 1", votes: 0, upvoters:[], author: userIds[1] },
+        { title: "Atanas's Post 2", votes: 0, upvoters:[], author: userIds[1] },
     ];
 
     usersApi.users = [
@@ -214,14 +214,13 @@ describe("write(post: $postInput)", () => {
     })
 });
 
-/*
 describe("upvote(title: String, voter: UserInput!)", () => {
 
     let UPVOTE_POST;
     beforeEach(() => {
         UPVOTE_POST = gql` 
-            mutation UpvotePost($title: ID!, $voter: UserInput!) {
-                upvote(title: $title, voter: $voter) {
+            mutation UpvotePost($title: ID!) {
+                upvote(title: $title) {
                     title, 
                     votes
                 }
@@ -229,38 +228,56 @@ describe("upvote(title: String, voter: UserInput!)", () => {
         `;
     });
 
-    it("upvotes a post", async () => {
+    it("upvotes a post - not authorized", async () => {
         const {
-            data: {upvote}
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "The Nothing", voter: { name: "Max" } } });
+            errors:[ error ]
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
 
-        expect(upvote).toMatchObject({ title: "The Nothing", votes: 1 });
+        expect(error.message).toEqual('Not Authorised!');
+    });
+
+    it("upvotes a post - authorized", async () => {
+        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
+
+        const {
+            data:{upvote},
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
+
+        expect(upvote).toMatchObject({ title: "Atanas's Post 1", votes: 1 });
     });
 
     it("throws error because post does not exist", async () => {
+        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
+
         const {
             errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "nosuchpost", voter: { name: "Max" } } });
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "nosuchpost" } });
 
-        expect(error.message).toEqual("Post with this title doesn't exist");
+        expect(error.message).toEqual("Not Authorised!");
     });
 
     it("throws error because voter does not exist", async () => {
+        unvalidAuthToken = await authApi.createToken(uuidv4());
+        reqMock.headers = {authorization: 'Bearer ' + unvalidAuthToken};
+
         const {
             errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "The Nothing", voter: { name: "bro" } } });
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1", voter: { name: "bro" } } });
 
-        expect(error.message).toEqual("No such voter.");
+        expect(error.message).toEqual("Not Authorised!");
     });
 
     it("throws error because voter already voted on this post", async () => {
+        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
+        const {
+            data:{upvote},
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
 
         const {
             errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "The Nothing", voter: { name: "Max" } } });
+        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
 
-        expect(error.message).toEqual("This voter has already upvoted this article");
+        expect(error.message).toEqual("You've already upvoted this post");
     })
 });
-*/
 
