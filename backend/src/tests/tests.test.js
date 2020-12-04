@@ -33,7 +33,7 @@ beforeEach(() => {
         { title: "Mike's Post 2", votes: 0, author: userIds[0] },
         { title: "Atanas's Post 1", votes: 0, author: userIds[1] },
         { title: "Atanas's Post 2", votes: 0, author: userIds[1] },
-    ]
+    ];
 
     usersApi.users = [
         {
@@ -48,7 +48,7 @@ beforeEach(() => {
         },
     ];
 
-})
+});
 
 describe("query", () => {
     
@@ -70,10 +70,10 @@ describe("query", () => {
 
         expect(posts).toHaveLength(4);
         expect(posts).toEqual([
-            { title: "Mike's Post 1", votes: 0, author: { name: 'Mike' } },
-            { title: "Mike's Post 2", votes: 0, author: { name: 'Mike' } },
-            { title: "Atanas's Post 1", votes: 0, author: { name: 'Atanas' } },
-            { title: "Atanas's Post 2", votes: 0, author: { name: 'Atanas' } },
+            { title: "Mike's Post 1", author: { name: 'Mike' } },
+            { title: "Mike's Post 2", author: { name: 'Mike' } },
+            { title: "Atanas's Post 1", author: { name: 'Atanas' } },
+            { title: "Atanas's Post 2", author: { name: 'Atanas' } },
         ]);
     });
 

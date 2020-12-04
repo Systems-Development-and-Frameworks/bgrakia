@@ -9,14 +9,15 @@ module.exports = {
     },
     User: {
       async posts(parent, args , { dataSources }) {
-        const posts = await dataSources.postsApi.getPosts();
+        let posts = await dataSources.postsApi.getPosts();
         return posts.filter(post => post.author === parent.name);
       }
     },
     Post: {
-      author(parent) {
+      async author(parent, args , { dataSources }) {
+        const userById = await dataSources.usersApi.getUserById(parent.author);
         return {
-          name: parent.author
+          name: userById.name
         };
       }
     },
