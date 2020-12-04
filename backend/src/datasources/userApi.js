@@ -5,7 +5,7 @@ const bcrypt = require('bcrypt');
 class UsersAPI extends RESTDataSource {
   constructor() {
     super();
-    this.users = [];
+      this.users = [];
   }
 
   async getUserById(id) {

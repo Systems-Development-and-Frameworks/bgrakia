@@ -1,6 +1,7 @@
 const { isAuthenticated, isPostUpvoted, isPostWithTitlePresent, passwordIsValid, passwordIsTooShort, emailIsTaken, canSeeEmail} = require("./rules");
 const { shield, and, not, deny, allow,  chain} = require('graphql-shield');
 const { UserInputError } = require('apollo-server');
+
 const permissions = shield({
     Query: {
       "*": allow,

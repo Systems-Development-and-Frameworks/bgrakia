@@ -5,8 +5,10 @@ const PostsAPI = require("../datasources/postApi");
 const UsersAPI = require("../datasources/userApi");
 const typeDefs = require('../typeDefs');
 const resolvers = require('../resolvers');
+const { v4: uuidv4 } = require('uuid');
 
 let usersApi = new UsersAPI();
+
 let postsApi = new PostsAPI();
 
 const server = new ApolloServer({
@@ -20,10 +22,36 @@ const server = new ApolloServer({
     }
 });
 
+
 const { query, mutate } = createTestClient(server);
 
-describe("query", () => {
+beforeEach(() => {
+    let userIds = [uuidv4(), uuidv4()];
 
+    postsApi.posts = [
+        { title: "Mike's Post 1", votes: 0, author: userIds[0] },
+        { title: "Mike's Post 2", votes: 0, author: userIds[0] },
+        { title: "Atanas's Post 1", votes: 0, author: userIds[1] },
+        { title: "Atanas's Post 2", votes: 0, author: userIds[1] },
+    ]
+
+    usersApi.users = [
+        {
+            id: userIds[0],
+            name: 'Mike',
+            posts: postsApi.posts.slice(0, 2)
+        },
+        {
+            id: userIds[1],
+            name: 'Atanas',
+            posts: postsApi.posts.slice(2, 4)
+        },
+    ];
+
+})
+
+describe("query", () => {
+    
     it("posts with nested user object", async () => {
         const GET_POSTS = gql`
             query {
@@ -40,20 +68,12 @@ describe("query", () => {
             data: { posts }
         } = await query({ query: GET_POSTS });
 
-        expect(posts).toHaveLength(2);
+        expect(posts).toHaveLength(4);
         expect(posts).toEqual([
-            {
-                title: 'The Thing',
-                author: {
-                    name: "Peter"
-                },
-            },
-            {
-                title: 'The Nothing',
-                author: {
-                    name: "Peter"
-                },
-            }
+            { title: "Mike's Post 1", votes: 0, author: { name: 'Mike' } },
+            { title: "Mike's Post 2", votes: 0, author: { name: 'Mike' } },
+            { title: "Atanas's Post 1", votes: 0, author: { name: 'Atanas' } },
+            { title: "Atanas's Post 2", votes: 0, author: { name: 'Atanas' } },
         ]);
     });
 
@@ -99,7 +119,7 @@ describe("query", () => {
   
 });
 
-describe("write(post: $postInput)", () => {
+/*describe("write(post: $postInput)", () => {
 
     let WRITE_POST;
 
@@ -187,5 +207,5 @@ describe("upvote(title: String, voter: UserInput!)", () => {
         
         expect(error.message).toEqual("This voter has already upvoted this article");
     })
-});
+});*/
 
