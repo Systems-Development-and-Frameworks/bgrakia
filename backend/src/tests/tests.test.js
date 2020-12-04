@@ -98,21 +98,29 @@ describe("query", () => {
         expect(users).toHaveLength(2);
         expect(users).toEqual([
             {
-                name: "Peter",
+                name: "Mike",
                 posts: [
                     {
-                        title: "The Thing",
-                        votes: 0
+                        title: "Mike's Post 1",
+                        votes: 0,
                     },
                     {
-                        title: "The Nothing",
-                        votes: 0
+                        title: "Mike's Post 2",
+                        votes: 0,
                     }
                 ]
-            }, 
-            {
-                name: "Max",
-                posts: []
+            }, {
+                name: "Atanas",
+                posts: [
+                    {
+                        title: "Atanas's Post 1",
+                        votes: 0,
+                    },
+                    {
+                        title: "Atanas's Post 2",
+                        votes: 0,
+                    }
+                ]
             }
         ]);
     });

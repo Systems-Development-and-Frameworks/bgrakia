@@ -10,7 +10,7 @@ module.exports = {
     User: {
       async posts(parent, args , { dataSources }) {
         let posts = await dataSources.postsApi.getPosts();
-        return posts.filter(post => post.author === parent.name);
+        return posts.filter(post => post.author === parent.id);
       }
     },
     Post: {
