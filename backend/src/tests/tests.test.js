@@ -174,7 +174,7 @@ describe("write(post: $postInput)", () => {
         `;
     });
 
-    it("creates new post - not authenticated", async () => {
+    it("creates no post - not authenticated", async () => {
         const {
             errors:[ error ]
         } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Title1"}}});
@@ -280,4 +280,3 @@ describe("upvote(title: String, voter: UserInput!)", () => {
         expect(error.message).toEqual("You've already upvoted this post");
     })
 });
-
