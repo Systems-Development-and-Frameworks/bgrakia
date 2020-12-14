@@ -17,7 +17,7 @@ class UsersAPI extends RESTDataSource {
   }
 
   async getUserByEmail(email) {
-    return this.users.find(user => user.email == email);
+    return this.users.find(user => user.email === email);
   }
 
   async createUser(name, email, password) {
