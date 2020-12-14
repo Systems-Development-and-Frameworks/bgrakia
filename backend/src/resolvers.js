@@ -1,5 +1,3 @@
-const { UserInputError } = require('apollo-server');
-
 module.exports = {
     Query: {
       async posts(parent, args, { dataSources }) {
@@ -11,57 +9,38 @@ module.exports = {
     },
     User: {
       async posts(parent, args , { dataSources }) {
-        const posts = await dataSources.postsApi.getPosts();
-        return posts.filter(post => post.author === parent.name);
+        let posts = await dataSources.postsApi.getPosts();
+        return posts.filter(post => post.author === parent.id);
       }
     },
     Post: {
-      author(parent) {
+      async author(parent, args , { dataSources }) {
+        const userById = await dataSources.usersApi.getUserById(parent.author);
         return {
-          name: parent.author
+          name: userById.name
         };
       }
     },
-    Mutation:{
-      async write(parent, args, { dataSources }) {
+    Mutation: {
+      async write(parent, args, { token, dataSources }) {
         let {
           title, 
-          author: {name}
-        } = args.post;
-        
-        // Check if a post with the title already exists.
-        let persistedPost = await dataSources.postsApi.getPost(title);
-        if (persistedPost !== undefined) {
-          throw new UserInputError("Post with this title already exists.", {invalidArgs: [title]});
-        }
-  
-        // Check if the author exists 
-        let author = await dataSources.usersApi.getUser(name);
-        if (author === undefined) {
-          throw new UserInputError("No such author.", {invalidArgs: [author]});
-        }
-  
-        return await dataSources.postsApi.createPost({title, author: name});
+        } = args.post;     
+        return await dataSources.postsApi.createPost({ title, author: token.uId });
       },
-      async upvote(parent, args, { dataSources }) {
-        // Why must we mock the current user? We have him right here, in the voter field?
-  
+      async upvote(parent, args, { token, dataSources }) {
         let postToUpvote = await dataSources.postsApi.getPost(args.title);
-        if (postToUpvote === undefined) {
-          throw new UserInputError("Post with this title doesn't exist", {invalidArgs: [args.title]});
-        }
-  
-        let upvoter = await dataSources.usersApi.getUser(args.voter.name);
-        if (upvoter === undefined) {
-          throw new UserInputError("No such voter.", {invalidArgs: [args.voter]});
-        }
-  
-        let alreadyVoted = postToUpvote.upvoters.includes(args.voter.name);
-        if (alreadyVoted) {
-          throw new UserInputError("This voter has already upvoted this article", {invalidArgs: [args.title, args.voter]});
-        }
-  
-        return await dataSources.postsApi.upvotePost(postToUpvote, args.voter.name);
+        return await dataSources.postsApi.upvotePost(postToUpvote, token.uId);
+      },
+      async signup(parent, args, { dataSources }) {
+        const createdUser = await dataSources.usersApi.createUser(args.name, args.email, args.password);
+        const token = await dataSources.authApi.createToken(createdUser.id);
+        return token;
+      },
+      async login(parent, args, { dataSources }) {
+        const user = await dataSources.usersApi.getUserByEmail(args.email);
+        const token = await dataSources.authApi.createToken(user.id);
+        return token;
       }
     }
   };

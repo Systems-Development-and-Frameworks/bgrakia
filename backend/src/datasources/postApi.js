@@ -4,20 +4,7 @@ class PostsAPI extends RESTDataSource {
 
   constructor() {
     super();
-    this.posts = [
-      {
-        title: 'The Thing',
-        votes: 0,
-        author: 'Peter',
-        upvoters:[]
-      },
-      {
-        title: 'The Nothing',
-        votes: 0,
-        author: 'Peter',
-        upvoters:[]
-      },
-    ];
+    this.posts = [];
   }
 
   async getPost(title) {

@@ -8,7 +8,9 @@ module.exports = gql`
   }
 
   type User {
-    name: ID!
+    id: ID!
+    name: String!
+    email: String!
     posts: [Post]
   }
 
@@ -19,17 +21,15 @@ module.exports = gql`
 
   type Mutation {
     write(post: PostInput!): Post
-    #delete(title: ID!): Post
-    upvote(title: ID!, voter: UserInput!): Post
-    #downvote(title: ID!, voter: UserInput!): Post
+
+    upvote(title: ID!): Post 
+
+    login(email: String!, password: String!): String
+   
+    signup(name: String!, email: String!, password: String!): String
   }
 
   input PostInput {
     title: String!
-    author: UserInput!
-  }
-
-  input UserInput {
-    name: String!
   }
 `;

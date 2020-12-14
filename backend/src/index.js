@@ -1,26 +1,41 @@
 const { ApolloServer } = require('apollo-server');
 const typeDefs = require('./typeDefs');
 const resolvers = require('./resolvers');
+const permissions = require('./security/permissions');
 const UsersAPI = require('./datasources/userApi');
 const PostsAPI = require('./datasources/postApi');
+const AuthAPI = require('./datasources/authenticationApi');
+require('dotenv').config();
+const { applyMiddleware } = require('graphql-middleware');
+const { makeExecutableSchema } = require('graphql-tools');
 
-
-// DO NOT initialize the endpoint inside the dataSources function!
-// See https://github.com/apollographql/apollo-server/issues/3150
-// Alternatively, set schema.polling.enable to false. (Haven't tested if this works tho)
 const usersApi = new UsersAPI();
 const postsApi = new PostsAPI();
+const authApi = new AuthAPI();
+
+const context = require('./context');
+
+const schema = applyMiddleware(
+  makeExecutableSchema({
+    typeDefs, 
+    resolvers,
+  }),
+  permissions,
+);
 
 const server = new ApolloServer({
-  typeDefs,
-  resolvers,
+  schema,
+  context: ({req}) => context({req}),
   dataSources: () => {
     return {
       usersApi: usersApi,
-      postsApi: postsApi
+      postsApi: postsApi,
+      authApi: authApi,
     }
   }
 });
+
+
 server.listen().then(({url}) => {
   console.log(`Server ready at ${url}`);
-})
+});
