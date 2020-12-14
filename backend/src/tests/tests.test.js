@@ -17,11 +17,11 @@ let postsApi = new PostsAPI();
 let authApi = new AuthAPI();
 
 const schema = applyMiddleware(
-    makeExecutableSchema({
-        typeDefs,
-        resolvers,
-    }),
-    permissions,
+  makeExecutableSchema({
+    typeDefs,
+    resolvers,
+  }),
+  permissions,
 );
 
 let reqMock;
@@ -81,7 +81,7 @@ beforeEach(async () => {
 });
 
 describe("query", () => {
-    
+
     it("posts with nested user object", async () => {
         const GET_POSTS = gql`
             query {
@@ -154,7 +154,7 @@ describe("query", () => {
             }
         ]);
     });
-  
+
 });
 
 describe("write(post: $postInput)", () => {

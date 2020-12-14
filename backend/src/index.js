@@ -5,6 +5,8 @@ const permissions = require('./security/permissions');
 const UsersAPI = require('./datasources/userApi');
 const PostsAPI = require('./datasources/postApi');
 const AuthAPI = require('./datasources/authenticationApi');
+const schema = require('./schema');
+
 require('dotenv').config();
 const { applyMiddleware } = require('graphql-middleware');
 const { makeExecutableSchema } = require('graphql-tools');
@@ -15,17 +17,17 @@ const authApi = new AuthAPI();
 
 const context = require('./context');
 
-const schema = applyMiddleware(
+/*const schema = applyMiddleware(
   makeExecutableSchema({
-    typeDefs, 
+    typeDefs,
     resolvers,
   }),
   permissions,
-);
+);*/
 
 const server = new ApolloServer({
   schema,
-  context: ({req}) => context({req}),
+  context: ({req}) => context({req}  ),
   dataSources: () => {
     return {
       usersApi: usersApi,

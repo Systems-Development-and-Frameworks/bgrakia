@@ -1,3 +1,7 @@
+const { delegateToSchema } = require('@graphql-tools/delegate');
+const dbSchema = require('./neo4j/schema');
+
+
 module.exports = {
     Query: {
       async posts(parent, args, { dataSources }) {
@@ -15,17 +19,14 @@ module.exports = {
     },
     Post: {
       async author(parent, args , { dataSources }) {
-        const userById = await dataSources.usersApi.getUserById(parent.author);
-        return {
-          name: userById.name
-        };
+        return await dataSources.usersApi.getUserById(parent.author);
       }
     },
     Mutation: {
       async write(parent, args, { token, dataSources }) {
         let {
-          title, 
-        } = args.post;     
+          title,
+        } = args.post;
         return await dataSources.postsApi.createPost({ title, author: token.uId });
       },
       async upvote(parent, args, { token, dataSources }) {
