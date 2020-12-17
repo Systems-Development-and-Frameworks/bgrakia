@@ -1,10 +1,13 @@
 const { stitchSchemas } = require('@graphql-tools/stitch');
 const typeDefs = require('./typeDefs');
-const resolvers = require('./resolvers');
+const Resolvers = require('./resolvers');
 const dbSchema = require('./neo4j/schema');
 
-module.exports = stitchSchemas({
-  subschemas: [dbSchema],
-  typeDefs,
-  resolvers
-});
+module.exports = () => {
+  const resolvers = Resolvers({ subschema: dbSchema});
+  return stitchSchemas({
+    subschemas: [dbSchema],
+    typeDefs,
+    resolvers
+  });
+};

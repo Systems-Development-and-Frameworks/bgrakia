@@ -6,16 +6,19 @@ const UsersAPI = require('./datasources/userApi');
 const PostsAPI = require('./datasources/postApi');
 const AuthAPI = require('./datasources/authenticationApi');
 const schema = require('./schema');
+const Server = require('./server');
 
 require('dotenv').config();
 const { applyMiddleware } = require('graphql-middleware');
 const { makeExecutableSchema } = require('graphql-tools');
 
-const usersApi = new UsersAPI();
-const postsApi = new PostsAPI();
+
+/*const usersApi = new UsersAPI();
+const postsApi = new PostsAPI();*/
 const authApi = new AuthAPI();
 
-const context = require('./context');
+const devServer = Server(ApolloServer, { authApi });
+
 
 /*const schema = applyMiddleware(
   makeExecutableSchema({
@@ -25,7 +28,7 @@ const context = require('./context');
   permissions,
 );*/
 
-const server = new ApolloServer({
+/*const server = new ApolloServer({
   schema,
   context: ({req}) => context({req}  ),
   dataSources: () => {
@@ -35,9 +38,9 @@ const server = new ApolloServer({
       authApi: authApi,
     }
   }
-});
+});*/
 
 
-server.listen().then(({url}) => {
+devServer.listen().then(({url}) => {
   console.log(`Server ready at ${url}`);
 });

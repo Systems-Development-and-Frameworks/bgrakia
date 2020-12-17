@@ -1,23 +1,40 @@
 const { rule } = require('graphql-shield');
 const bcrypt = require('bcrypt');
-
+const { delegateToSchema } = require('@graphql-tools/delegate');
+const dbSchema = require('../neo4j/schema');
 
 const isAuthenticated = rule({ cache: 'contextual' })(
-    async (parent, args, { token, dataSources }) => {
-        const user = await dataSources.usersApi.getUserById(token.uId);
+    async (parent, args, context, info) => {
+        const [user] = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'User',
+          args: args,
+          context,
+          info
+        })
+        //const user = await dataSources.usersApi.getUserById(token.uId);
         return user !== undefined;
     }
   );
-  
+
 const canSeeEmail = rule({ cache: 'strict' })(
     async (parent, args, { token }) => {
-        return token.uId === parent.id; 
+        return token.uId === parent.id;
     }
 );
 
 const emailIsTaken = rule({ cache: 'strict' })(
-    async(parent, args, { token, dataSources }) => {
-        const user = await dataSources.usersApi.getUserByEmail(args.email);
+    async(parent, args, context, info) => {
+        const user = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'User',
+          args: args,
+          context,
+          info
+        })
+        //const user = await dataSources.usersApi.getUserByEmail(args.email);
         return user !== undefined;
     }
 );
@@ -29,14 +46,22 @@ const passwordIsTooShort = rule({ cache: 'strict' })(
 );
 
 const passwordIsValid = rule({ cache: 'strict' })(
-    async (parent, args, { dataSources }) => {
-        const user = await dataSources.usersApi.getUserByEmail(args.email);
+    async (parent, args, context, info) => {
+        const [user] = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'User',
+          args: args,
+          context,
+          info
+        })
+        //const user = await dataSources.usersApi.getUserByEmail(args.email);
         return user !== undefined && bcrypt.compareSync(args.password, user.password);
     }
 );
 
 const isPostWithTitlePresent = rule({ cache: 'strict'})(
-    async (parent, args, { dataSources }) => {
+    async (parent, args, context, info) => {
         let title;
         if (args.post === undefined) {
             title = args.title;
@@ -44,17 +69,42 @@ const isPostWithTitlePresent = rule({ cache: 'strict'})(
         else {
             title = args.post.title
         }
-
-        const post = await dataSources.postsApi.getPost(title);
+        const [post] = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'Post',
+          args: { title, ...args },
+          context,
+          info
+        })
+        //const post = await dataSources.postsApi.getPost(title);
         return post !== undefined;
     }
 );
 
 const isPostUpvoted = rule({ cache: 'strict'})(
-    async (parent, args, { dataSources, token }) => {
+    async (parent, args, context, info) => {
         const title = args.title;
-        const post = await dataSources.postsApi.getPost(title);
-        return post.upvoters.includes(token.uId);
+        const [post] = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'Post',
+          args: { title },
+          context,
+          info
+        });
+
+        const [user] = await delegateToSchema({
+          schema: dbSchema,
+          operation: 'query',
+          fieldName: 'User',
+          args: { id: context.token.uId },
+          context,
+          info
+        });
+
+        //const post = await dataSources.postsApi.getPost(title);
+        return post.upvoters.includes(user);
     }
 );
 
