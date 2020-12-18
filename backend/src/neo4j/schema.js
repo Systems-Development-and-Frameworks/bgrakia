@@ -5,19 +5,18 @@ const typeDefs = gql`
   type Post {
     title: ID! @id
     votes: Int!
-    author: User! @relation(name: "POSTED", direction: "IN")
-    upvoters: [User] @relation(name: "UPVOTED", direction: "IN")
+    author: User! @relation(name: "AUTHORED", direction: "OUT")
   }
-
+  
   type User {
-    id: ID! @id
+    id: ID! 
     name: String!
     email: String!
     password: String!
-    posts: [Post] @relation(name: "POSTED", direction: "OUT")
-    upvoted: [Post] @relation(name: "UPVOTED", direction: "OUT")
+    posts: [Post] @relation(name: "AUTHORED", direction: "IN")
   }
 `;
 
-const schema = makeAugmentedSchema({ typeDefs })
-module.exports = schema;
+const neo4jSchema = makeAugmentedSchema({ typeDefs });
+
+module.exports = neo4jSchema;

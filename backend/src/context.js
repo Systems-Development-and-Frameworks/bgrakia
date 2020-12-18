@@ -1,13 +1,13 @@
-const jwt = require('jsonwebtoken');
 const driver = require('./neo4j/db-driver')
-module.exports = ({ req }) => {
-    let token = req.headers.authorization || '';
-    token = token.replace('Bearer ', '');
+
+module.exports = ({ req, authService }) => {
+    const authHeader = (req.headers.authorization || '').replace('Bearer ', '');
+    const ctx = { authService, driver };
     try {
-        const decodedToken = jwt.verify(token, process.env.JWT_SECRET);
-        return { token: decodedToken, driver }
+        const token = authService.verify(authHeader);
+        return { token, ...ctx }
     }
     catch (e) {
-        return { driver }
+        return ctx;
     }
 };

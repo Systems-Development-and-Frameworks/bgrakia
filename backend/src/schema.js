@@ -1,13 +1,17 @@
+const { applyMiddleware } = require('graphql-middleware');
 const { stitchSchemas } = require('@graphql-tools/stitch');
+const permissions = require('./security/permissions');
+const resolvers = require('./resolvers');
 const typeDefs = require('./typeDefs');
-const Resolvers = require('./resolvers');
-const dbSchema = require('./neo4j/schema');
+const neo4jSchema = require('./neo4j/schema');
 
-module.exports = () => {
-  const resolvers = Resolvers({ subschema: dbSchema});
-  return stitchSchemas({
-    subschemas: [dbSchema],
-    typeDefs,
-    resolvers
-  });
-};
+const gatewaySchema = stitchSchemas({
+  subschemas: [ { schema: neo4jSchema }],
+  typeDefs,
+  resolvers
+});
+
+const schemaWithSchields = applyMiddleware(gatewaySchema, permissions);
+
+module.exports = schemaWithSchields;
+

@@ -4,7 +4,7 @@
   "description": "",
   "main": "src/index.js",
   "scripts": {
-    "serve": "node src/index.js",
+    "serve": "DEBUG=neo4j-graphql-js node src/index.js",
     "test": "jest",
     "lint": "eslint --ext .js"
   },
@@ -17,17 +17,17 @@
     "apollo-server": "^2.19.0",
     "apollo-server-testing": "^2.19.0",
     "bcrypt": "^5.0.0",
-    "dotenv": "^8.2.0",
-    "graphql": "^15.4.0",
+    "dotenv-flow": "^3.2.0",
+    "graphql": "^14.7.0",
     "graphql-middleware": "^4.0.2",
     "graphql-shield": "^7.4.2",
     "jsonwebtoken": "^8.5.1",
     "neo4j-driver": "^4.2.1",
-    "neo4j-graphql-js": "^2.17.1",
+    "neo4j-graphql-js": "^2.14.3",
     "uuid": "^8.3.1"
   },
   "devDependencies": {
-    "@graphql-tools/stitch": "^7.1.4",
+    "@graphql-tools/stitch": "^7.1.6",
     "eslint": "^7.13.0",
     "eslint-config-google": "^0.14.0",
     "eslint-config-standard": "^16.0.1",

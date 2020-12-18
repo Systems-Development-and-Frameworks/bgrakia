@@ -9,11 +9,12 @@ const isAuthenticated = rule({ cache: 'contextual' })(
           schema: dbSchema,
           operation: 'query',
           fieldName: 'User',
-          args: args,
+          args: {
+            id: context.token.uId
+          },
           context,
           info
         })
-        //const user = await dataSources.usersApi.getUserById(token.uId);
         return user !== undefined;
     }
   );
@@ -73,7 +74,7 @@ const isPostWithTitlePresent = rule({ cache: 'strict'})(
           schema: dbSchema,
           operation: 'query',
           fieldName: 'Post',
-          args: { title, ...args },
+          args: { title },
           context,
           info
         })

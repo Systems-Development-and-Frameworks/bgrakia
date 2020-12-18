@@ -1,218 +1,124 @@
+const { AuthenticationError } = require('apollo-server-errors');
+const { v4: uuidv4 } = require('uuid');
 const { delegateToSchema } = require('@graphql-tools/delegate');
-const { UserInputError } = require('apollo-server');
-const bcrypt = require('bcrypt');
+const neo4jSchema = require('./neo4j/schema');
+const passwordService = require('./services/passwords');
 
-
-
-const Resolvers = ({subschema}) => ({
+const resolvers = {
   Query: {
     posts: async(parent, args, context, info) => {
-      const posts = await delegateToSchema({
-        schema: subschema,
+      return await delegateToSchema({
+        schema: neo4jSchema,
         operation: 'query',
         fieldName: 'Post',
         context,
         info
       });
-      return posts;
     },
     users: async(parent, args, context, info) => {
-      const users = await delegateToSchema({
-        schema: subschema,
+      return await delegateToSchema({
+        schema: neo4jSchema,
         operation: 'query',
         fieldName: 'User',
         context,
         info
       });
-      return users;
-    }
+    },
   },
   Mutation: {
-    write: async (parent, args, context, info) => {
-      let {
-        title,
-      } = args.post;
-      const [post] = await delegateToSchema({
-        schema: subschema,
+    write: async(parent, args, context, info) => {
+      const title = args.post.title;
+      return await delegateToSchema({
+        schema: neo4jSchema,
         operation: 'mutation',
-        fieldName: 'Post',
-        args: { title },
-        context,
-        info
-      });
-      return post;
-      //return await dataSources.postsApi.createPost({ title, author: token.uId });
-    },
-    upvote: async (parent, args, context, info) => {
-      const [post] = await delegateToSchema({
-        schema: subschema,
-        operation: 'query',
-        fieldName: 'Post',
-        args: { title: args.title },
-        context,
-        info
-      });
-      const [user] = await delegateToSchema({
-        schema: subschema,
-        operation: 'query',
-        fieldName: 'User',
-        args: { id: context.token.uId },
-        context,
-        info
-      });
-
-      const isPostUpvoted = post.upvoters.includes(user)
-      if (isPostUpvoted) {
-        throw new UserInputError("You've already upvoted this post");
-      }
-
-      const [updatedPost] = await delegateToSchema({
-        schema: subschema,
-        operation: 'mutation',
-        fieldName: 'Post',
+        fieldName: 'CreatePost',
         args: {
-          title: post.title,
-          upvoters: [user, ...post.upvoters]
+          title,
+          votes: 0
         },
         context,
         info
       });
-      return updatedPost;
     },
-    signup: async (parent, args, context, info) => {
-      const saltRounds = parseInt(process.env.SALT_ROUNDS);
-      const encryptedPassword = await bcrypt.hash(args.password, saltRounds);
-
-      const createdUser = await delegateToSchema({
-        schema: subschema,
-        operation: 'mutation',
-        fieldName: 'CreateUser',
-        //args: { password: encryptedPassword },
-        args: {name: args.name, email: args.email, password: encryptedPassword}, //posts: [], upvoted: []},
-        context,
-        info
-      })
-      const token = await context.dataSources.authApi.createToken(createdUser.id);
-      return token;
-    },
-    login: async (parent, args, context, info) => {
-      const user = await delegateToSchema({
-        schema: subschema,
+    upvote: async(parent, args, context, info) => {
+      const title = args.title;
+      const [post] = await delegateToSchema({
+        schema: neo4jSchema,
         operation: 'query',
-        fieldName: 'User',
-        args: args,
+        fieldName: 'Post',
+        args: {
+          title
+        },
         context,
         info
       });
-      const token = await context.dataSources.authApi.createToken(user.id);
-      return token;
+
+      return await delegateToSchema({
+        schema: neo4jSchema,
+        operation: 'mutation',
+        fieldName: 'UpdatePost',
+        args: {
+          title,
+          votes: post.votes+1
+        },
+        context,
+        info
+      });
+    },
+    signup: async(parent, args, context, info) => {
+      let {
+        name,
+        email,
+        password
+      } = args;
+
+      password = await passwordService.hash(password);
+      const id = uuidv4();
+
+      /*const user = await delegateToSchema({
+        schema: neo4jSchema,
+        operation: 'mutation',
+        fieldName: 'CreateUser',
+        args: {
+          id,
+          name,
+          email,
+          password
+        },
+        context,
+        info
+      });*/
+      return context.authService.issueToken(3);
+    },
+    login: async(parent, args, context, info) => {
+      const {
+        email,
+        password
+      } = args;
+
+      const id = context.token.uId;
+
+      const [user] = await delegateToSchema({
+        schema: neo4jSchema,
+        operation: 'query',
+        fieldName: 'User',
+        args: {
+          id
+        },
+        context,
+        info
+      });
+
+      let pwdIsValid = await passwordService.passwordsMatch(password, user.password);
+      if (!pwdIsValid) {
+        throw new AuthenticationError("Password is invalid.");
+      }
+
+      return context.authService.issueToken(id);
     }
   }
-})
+}
 
-module.exports = Resolvers;
+module.exports = resolvers;
 
 
-/*module.exports = {
-    Query: {
-      async posts(parent, args, context, info) {
-        const posts = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'Post',
-          context,
-          info
-        });
-        return posts;
-      },
-      async users(parent, args, context, info) {
-        const users = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'User',
-          context,
-          info
-        });
-        return users;
-      }
-    },
-
-    Mutation: {
-      async write(parent, args, context, info) {
-        let {
-          title,
-        } = args.post;
-        const [post] = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'mutation',
-          fieldName: 'Post',
-          args: { title },
-          context,
-          info
-        });
-        return post;
-      },
-      async upvote(parent, args, context, info) {
-        const [post] = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'Post',
-          args: { title: args.title },
-          context,
-          info
-        });
-        const [user] = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'User',
-          args: { id: context.token.uId },
-          context,
-          info
-        });
-
-        const isPostUpvoted = post.upvoters.includes(user)
-        if (isPostUpvoted) {
-          throw new UserInputError("You've already upvoted this post");
-        }
-
-        const [updatedPost] = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'mutation',
-          fieldName: 'Post',
-          args: { title: post.title, upvoters: [user, ...post.upvoters] },
-          context,
-          info
-        });
-        return updatedPost;
-      },
-      async signup(parent, args, context, info) {
-        const saltRounds = parseInt(process.env.SALT_ROUNDS);
-        const encryptedPassword = await bcrypt.hash(args.password, saltRounds);
-
-        const createdUser = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'CreateUser',
-          args: { password: encryptedPassword},
-          //args: {id: 10, name: args.name, email: args.email, password: encryptedPassword}, //posts: [], upvoted: []},
-          context,
-          info
-        })
-        const token = await context.dataSources.authApi.createToken(createdUser.id);
-        return token;
-      },
-      async login(parent, args, context, info) {
-        const user = await delegateToSchema({
-          schema: dbSchema,
-          operation: 'query',
-          fieldName: 'User',
-          args: args,
-          context,
-          info
-        });
-        const token = await context.dataSources.authApi.createToken(user.id);
-        return token;
-
-      }
-    }
-  };*/

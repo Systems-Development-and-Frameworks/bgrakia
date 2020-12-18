@@ -1,13 +1,14 @@
-const Schema = require('./schema');
+const { ApolloServer } = require('apollo-server');
+const schema = require('./schema');
 const context = require('./context');
-const permissions = require('./security/permissions');
+const authService = require('./services/tokens');
 
-module.exports = (ApolloServer, dataSources, opts) => {
-  const schema = Schema();
+const spawnServer = (opts) => {
   return new ApolloServer({
     schema,
-    context: ({req}) => context({req}),
-    dataSources: () => dataSources,
+    context: ({ req }) => context({ req, authService }),
     ...opts
   });
 }
+
+module.exports = spawnServer;
