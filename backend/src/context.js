@@ -4,7 +4,7 @@ module.exports = ({ req, authService }) => {
     const authHeader = (req.headers.authorization || '').replace('Bearer ', '');
     const ctx = { authService, driver };
     try {
-        const token = authService.verify(authHeader);
+        const token = authService.verifyToken(authHeader);
         return { token, ...ctx }
     }
     catch (e) {

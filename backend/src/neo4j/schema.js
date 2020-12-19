@@ -3,7 +3,7 @@ const { gql } = require('apollo-server');
 
 const typeDefs = gql`
   type Post {
-    title: ID! @id
+    title: ID! 
     votes: Int!
     author: User! @relation(name: "AUTHORED", direction: "OUT")
   }

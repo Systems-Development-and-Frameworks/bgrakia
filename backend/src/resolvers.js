@@ -1,8 +1,9 @@
-const { AuthenticationError } = require('apollo-server-errors');
+const { AuthenticationError, UserInputError } = require('apollo-server-errors');
 const { v4: uuidv4 } = require('uuid');
 const { delegateToSchema } = require('@graphql-tools/delegate');
 const neo4jSchema = require('./neo4j/schema');
 const passwordService = require('./services/passwords');
+const User = require('./domain/User');
 
 const resolvers = {
   Query: {
@@ -71,50 +72,60 @@ const resolvers = {
         email,
         password
       } = args;
+      const { authService, driver } = context;
+      const session = driver.session();
 
-      password = await passwordService.hash(password);
-      const id = uuidv4();
-
-      /*const user = await delegateToSchema({
-        schema: neo4jSchema,
-        operation: 'mutation',
-        fieldName: 'CreateUser',
-        args: {
-          id,
-          name,
-          email,
-          password
-        },
-        context,
-        info
-      });*/
-      return context.authService.issueToken(3);
+      // Get all records from the database where the emails match.
+      // Is atomicity required here? Fetching data doesn't change any state.
+      // However, I assume that the driver may implicitly close the session if the transaction fails?
+      // TODO: Ask Rob
+      const { records: userRecords } = await session.readTransaction((tx) =>
+        tx.run("MATCH (n:User) WHERE n.email = $email RETURN n", { email })
+      );
+      // Check if email is taken
+      if (userRecords.length > 0) {
+        throw new UserInputError("A user with this email already exists.");
+      }
+      // Persist user
+      const user = new User(name, email, password);
+      try {
+        await session.writeTransaction((tx) =>
+          tx.run("CREATE (u: User {name: $name, email: $email, id:$id, password: $password})", user)
+        );
+      }
+      catch (e) {
+        throw new Error("Something went wrong. Please try again.:)");
+      }
+      finally {
+        session.close();
+      }
+      return authService.issueToken(user.id);
     },
     login: async(parent, args, context, info) => {
       const {
         email,
         password
       } = args;
+      const { token, authService, driver } = context;
+      const session = driver.session();
+      const userId = token.uId;
 
-      const id = context.token.uId;
+      const { records: userRecords } = await session.readTransaction((tx) =>
+        tx.run("MATCH (u: User) WHERE u.id = $userId RETURN u.password AS pwd", { userId })
+      )
 
-      const [user] = await delegateToSchema({
-        schema: neo4jSchema,
-        operation: 'query',
-        fieldName: 'User',
-        args: {
-          id
-        },
-        context,
-        info
-      });
+      if (userRecords.length === 0) {
+        throw new UserInputError("You don't exist.");
+      }
 
-      let pwdIsValid = await passwordService.passwordsMatch(password, user.password);
+      const userPassword = userRecords[0].get('pwd');
+
+      let pwdIsValid = await passwordService.passwordsMatch(password, userPassword);
       if (!pwdIsValid) {
         throw new AuthenticationError("Password is invalid.");
       }
 
-      return context.authService.issueToken(id);
+      return context.authService.issueToken(userId);
     }
   }
 }
