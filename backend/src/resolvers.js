@@ -46,7 +46,7 @@ const resolvers = {
       }
 
       const { records: postRecords } = await session.writeTransaction((tx) =>
-        tx.run("CREATE (p: Post {title: $title, votes: 0, upvoters: []}) RETURN p", { title })
+        tx.run("CREATE (p: Post {title: $title, votes: 0}) RETURN p", { title })
       );
       if (postRecords.length === 0) {
         throw new Error("Could not create post.");
@@ -108,26 +108,6 @@ const resolvers = {
       });
     },
     signup: async(_, args, context, info) => {
-      /**
-       * I think we can't delegate here, because there is no actual stitching between
-       * the gateway schema and the neo4j subschema.
-       * The info object holds a return value of type String, so if I were to delegate
-       * to the subschema to fetch the user with the given email, eg:
-       * await delegateToSchema({
-       *   schema: neo4jshchema,
-       *   operation: 'query',
-       *   fieldName: 'User',
-       *   args: {
-       *     filter: { email: args.email }
-       *   },
-       *   context,
-       *   info
-       * })
-       * it would return null, because the actual response type of the User query is User.
-       * I have no idea if I'm right or wrong, but I'm gonna go with the driver implementation.
-       * Wasted 2 days on this.
-       */
-
       let { name, email, password } = args;
       if (password.length < 8) {
         throw new UserInputError("The password must be at least 8 characters long.");

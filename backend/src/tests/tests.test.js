@@ -1,117 +1,65 @@
 const { createTestClient } = require('apollo-server-testing');
-const { ApolloServer, gql } = require("apollo-server");
-const {beforeEach, describe, expect, it} = require("@jest/globals");
-const PostsAPI = require("../datasources/postApi");
-const UsersAPI = require("../datasources/userApi");
-const AuthAPI = require("../datasources/authenticationApi");
-const typeDefs = require('../typeDefs');
-const resolvers = require('../resolvers');
-const permissions = require('../security/permissions');
-const { v4: uuidv4 } = require('uuid');
-const { applyMiddleware } = require('graphql-middleware');
-const { makeExecutableSchema } = require('graphql-tools');
-const jwt = require('jsonwebtoken');
+const { gql } = require("apollo-server");
+const {beforeEach, afterAll, describe, expect, it} = require("@jest/globals");
+const authService = require('../services/tokens');
+const actualContext = require('../context');
+const User = require('../domain/User')
+const Post = require('../domain/Post')
+const Server = require('../server');
 
-let usersApi = new UsersAPI();
-let postsApi = new PostsAPI();
-let authApi = new AuthAPI();
+let query;
+let mutate;
+let requestMock;
+const context = () => actualContext({req: requestMock, authService});
 
-const schema = applyMiddleware(
-  makeExecutableSchema({
-    typeDefs,
-    resolvers,
-  }),
-  permissions,
-);
-
-let reqMock;
-let resMock;
-const context = require('../context');
-const contextPipeline = () => context({ req: reqMock, res: resMock });
-
-const server = new ApolloServer({
-    schema,
-    context: contextPipeline,
-    dataSources: () => {
-        return {
-          usersApi: usersApi,
-          postsApi: postsApi,
-          authApi: authApi
-        }
-    }
-});
-
-let mike_auth_token = '';
-let atanas_auth_token = '';
-
-const { query, mutate } = createTestClient(server);
+const cleanDatabase = async () => {
+    const { driver } = context();
+    await driver.session().writeTransaction(txc => txc.run("MATCH(n) DETACH DELETE n;"));
+}
 
 beforeEach(async () => {
-    process.env.JWT_SECRET='TEST_SECRET';
-    // For me a mock express.Request containing some headers is enough.
-    // I assume typescript will complain here:
-    reqMock = { headers: {} };
-    resMock = {};
+    requestMock = { headers: {} };
+    await cleanDatabase();
+    const server = Server({ context })
+    const testClient = createTestClient(server);
+    ({ query, mutate } = testClient);
+})
 
-    let userIds = [uuidv4(), uuidv4()];
+afterAll(async () => {
+    await cleanDatabase();
+    const { driver } = context();
+    await driver.close();
+})
 
-    mike_auth_token = await authApi.createToken(userIds[0]);
-    atanas_auth_token = await authApi.createToken(userIds[1]);
+describe('Query', () => {
+    beforeEach(async () => {
+        const bob = new User('Bob', 'bob@mail.com', 'bobby');
+        const alice = new User('Alice', 'alice@mail.com', 'alice');
+        const { driver } = context();
+        const session = driver.session();
+        await User.save(session, bob);
+        await User.save(session, alice);
 
-    postsApi.posts = [
-        { title: "Mike's Post 1", votes: 0, upvoters:[], author: userIds[0] },
-        { title: "Mike's Post 2", votes: 0, upvoters:[], author: userIds[0] },
-        { title: "Atanas's Post 1", votes: 0, upvoters:[], author: userIds[1] },
-        { title: "Atanas's Post 2", votes: 0, upvoters:[], author: userIds[1] },
-    ];
+        const bobPost = new Post('Bob Post');
+        const alicePost = new Post('Alice Post');
+        await Post.save(session, bobPost);
+        await Post.save(session, alicePost);
 
-    usersApi.users = [
-        {
-            id: userIds[0],
-            name: 'Mike',
-            posts: postsApi.posts.slice(0, 2)
-        },
-        {
-            id: userIds[1],
-            name: 'Atanas',
-            posts: postsApi.posts.slice(2, 4)
-        },
-    ];
+        const linkBobWithPost = await session.writeTransaction((tx) =>
+            tx.run('MATCH (u: User {id: $id}), (p: Post {title: $title}) CREATE (u)-[:AUTHORED]->(p) RETURN u',
+              { id: bob.id, title: bobPost.title})
+        )
+        const linkAliceWithPost = await session.writeTransaction((tx) =>
+          tx.run('MATCH (u: User {id: $id}), (p: Post {title: $title}) CREATE (u)-[:AUTHORED]->(p) RETURN u',
+            { id: alice.id, title: alicePost.title})
+        );
+    })
 
-});
-
-describe("query", () => {
-
-    it("posts with nested user object", async () => {
-        const GET_POSTS = gql`
-            query {
-                posts {
-                    title 
-                    author {
-                        name
-                    }
-                }
-            }
-        `;
-
-        const {
-            data: { posts }
-        } = await query({ query: GET_POSTS });
-
-        expect(posts).toHaveLength(4);
-        expect(posts).toEqual([
-            { title: "Mike's Post 1", author: { name: 'Mike' } },
-            { title: "Mike's Post 2", author: { name: 'Mike' } },
-            { title: "Atanas's Post 1", author: { name: 'Atanas' } },
-            { title: "Atanas's Post 2", author: { name: 'Atanas' } },
-        ]);
-    });
-
-    it("users with nested post object", async () => {
+    describe('users', () => {
         const GET_USERS = gql`
             query {
                 users {
-                    name 
+                    name
                     posts {
                         title
                         votes
@@ -120,163 +68,321 @@ describe("query", () => {
             }
         `;
 
-        const {
-            data: { users }
-        } = await query({ query: GET_USERS });
-
-
-        expect(users).toHaveLength(2);
-        expect(users).toEqual([
-            {
-                name: "Mike",
-                posts: [
-                    {
-                        title: "Mike's Post 1",
-                        votes: 0,
-                    },
-                    {
-                        title: "Mike's Post 2",
-                        votes: 0,
-                    }
-                ]
-            }, {
-                name: "Atanas",
-                posts: [
-                    {
-                        title: "Atanas's Post 1",
-                        votes: 0,
-                    },
-                    {
-                        title: "Atanas's Post 2",
-                        votes: 0,
-                    }
-                ]
-            }
-        ]);
+        it('returns array of users', async () => {
+            await expect(query({ query: GET_USERS })).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                    users: [
+                        { name: 'Alice', posts: [ { title: 'Alice Post', votes: 0 } ] },
+                        { name: 'Bob', posts: [ { title: 'Bob Post', votes: 0 } ] },
+                    ]
+                }
+            });
+        });
     });
 
-});
-
-describe("write(post: $postInput)", () => {
-
-    let WRITE_POST;
-
-    beforeEach(() => {
-        WRITE_POST = gql`
-            mutation WritePost($post: PostInput!) {
-                write(post: $post) {
-                    title, 
+    describe('posts', () => {
+        const GET_POSTS = gql`
+            query {
+                posts {
+                    title
                     author {
                         name
                     }
                 }
             }
         `;
-    });
 
-    it("creates no post - not authenticated", async () => {
-        const {
-            errors:[ error ]
-        } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Title1"}}});
-
-        expect(error.message).toEqual('Not Authorised!');
-    });
-
-    it("creates new post - authenticated", async () => {
-        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
-
-        const {
-            data: {write}
-        } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Title1"} } });
-
-        expect(write).toEqual({title: "Title1", author: {name: "Atanas"}});
-    });
-
-    it("throws error if author creates post with already existent title", async () => {
-        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
-
-        const {
-            errors: [error]
-        } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Atanas's Post 1" } } });
-
-        expect(error.message).toEqual("Post with this title already exists.");
-    });
-
-    it("throws error if author doesn't exist", async () => {
-        unvalidAuthToken = await authApi.createToken(uuidv4());
-        reqMock.headers = {authorization: 'Bearer ' + unvalidAuthToken};
-
-        const {
-            errors: [error]
-        } = await mutate({ mutation: WRITE_POST, variables: { post: { title: "Asdsdasd" } } });
-
-        expect(error.message).toEqual("Not Authorised!");
+        it ('returns array of posts', async () => {
+            await expect(query({ query: GET_POSTS })).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                    posts: [
+                        { title: 'Bob Post', author: { name: 'Bob' } },
+                        { title: 'Alice Post', author: { name: 'Alice'} }
+                    ]
+                }
+            });
+        })
     })
 });
 
-describe("upvote(title: String, voter: UserInput!)", () => {
+describe('Mutation', () => {
 
-    let UPVOTE_POST;
-    beforeEach(() => {
-        UPVOTE_POST = gql` 
-            mutation UpvotePost($title: ID!) {
-                upvote(title: $title) {
-                    title, 
-                    votes
+
+    describe('login', () => {
+        const LOGIN = gql`
+            mutation($email: String!, $password: String!) {
+                login(email: $email, password: $password)
+            }
+        `;
+
+        beforeEach(async () => {
+            const alice = new User('Alice', 'alice@mail.com', 'alice');
+            const { driver } = context();
+            const session = driver.session();
+            await User.save(session, alice);
+        });
+
+        it('identifies wrong passwords', async () => {
+            const variables = { email: 'alice@mail.com', password: 'wrongpassword' };
+            await expect(mutate( { mutation: LOGIN, variables })).resolves.toMatchObject({
+                errors: [
+                  expect.objectContaining({
+                      message: 'Password is invalid.',
+                  })
+                ],
+                data: {
+                    login: null,
+                }
+            });
+        });
+
+        it('identifies wrong emails', async () => {
+            const variables = { email: 'alice@nosuchemail.com', password: 'alice' };
+            await expect(mutate( { mutation: LOGIN, variables })).resolves.toMatchObject({
+                errors: [
+                    expect.objectContaining({
+                        message: "You don't exist.",
+                    })
+                ],
+                data: {
+                    login: null
+                }
+            });
+        })
+
+        it('authenticates users with valid inputs', async () => {
+            const variables = { email: 'alice@mail.com', password: 'alice'};
+            await expect(mutate( { mutation: LOGIN, variables })).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                   login: expect.any(String)
+                }
+            });
+        })
+    });
+
+    describe('signup', () => {
+        const SIGNUP = gql`
+            mutation($name: String!, $email: String!, $password: String!) {
+                signup(name: $name, email: $email, password: $password)
+            }
+        `;
+
+        it('makes sure the password is long enough', async () => {
+            const variables = { name: 'Test', email: 'Test', password: 'test'};
+            await expect(mutate( { mutation: SIGNUP, variables})).resolves.toMatchObject({
+                errors: [
+                  expect.objectContaining({
+                      message: "The password must be at least 8 characters long."
+                  })
+                ],
+                data: {
+                    signup: null
+                }
+            })
+        });
+
+        it ('makes sure the email is not taken by another user', async () => {
+            const alice = new User('Alice', 'alice@mail.com', 'aliceInWonderland');
+            const { driver } = context();
+            const session = driver.session();
+            await User.save(session, alice);
+            const variables = { name: alice.name, email: alice.email, password: alice.password};
+            await expect(mutate( { mutation: SIGNUP, variables})).resolves.toMatchObject({
+                errors: [
+                  expect.objectContaining({
+                      message: "A user with this email already exists."
+                  })
+                ],
+                data: {
+                    signup: null
+                }
+            })
+        });
+
+        it('creates a user with valid email and password', async () => {
+            const variables = { name: 'Bob', email: 'bob@mail.com', password: 'bobbyBoy'}
+            await expect(mutate({ mutation: SIGNUP, variables})).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                    signup: expect.any(String)
+                }
+            })
+        });
+    });
+
+    describe('write', () => {
+        const WRITE_POST = gql`
+            mutation($post: PostInput!) {
+                write(post: $post) {
+                    title,
+                    author {
+                        name
+                    }
                 }
             }
         `;
+
+        beforeEach(async () => {
+            const bob = new User('Bob', 'bob@mail.com', 'bobby');
+            const { driver } = context();
+            const session = driver.session();
+            await User.save(session, bob);
+
+            const bobPost = new Post('Bob Post');
+            await Post.save(session, bobPost);
+
+            const linkBobWithPost = await session.writeTransaction((tx) =>
+              tx.run('MATCH (u: User {id: $id}), (p: Post {title: $title}) CREATE (u)-[:AUTHORED]->(p) RETURN u',
+                { id: bob.id, title: bobPost.title})
+            )
+            const { authService } = context();
+            requestMock = { headers: { authorization: 'Bearer ' + authService.issueToken(bob.id)}};
+        })
+
+        it('does not create a post if the title is taken', async () => {
+            const variables = { post: {title: 'Bob Post'} };
+
+            await expect(mutate( { mutation: WRITE_POST, variables } )).resolves.toMatchObject({
+                errors: [
+                  expect.objectContaining({
+                      message: 'Post with this title already exists.'
+                  })
+                ],
+                data: {
+                    write: null
+                }
+            })
+        });
+
+        it('does not create a post if not authenticated', async () => {
+            const { authService } = context();
+            requestMock = { headers: { authorization: 'Bearer ' + authService.issueToken('blah')}};
+            const variables = { post: {title: 'New Post'} };
+            await expect(mutate( { mutation: WRITE_POST, variables } )).resolves.toMatchObject({
+                errors: [
+                    expect.objectContaining({
+                        message: 'Not Authorised!'
+                    })
+                ],
+                data: {
+                    write: null
+                }
+            })
+        })
+
+        it('creates a post', async () => {
+            const variables = { post: {title: 'New Post'} };
+            await expect(mutate( { mutation: WRITE_POST, variables })).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                    write: {
+                        title: 'New Post',
+                        author: {
+                            name: 'Bob'
+                        }
+                    }
+                }
+            });
+        });
     });
 
-    it("upvotes a post - not authorized", async () => {
-        const {
-            errors:[ error ]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
+    describe('upvote', () => {
+        const UPVOTE_POST = gql`
+            mutation ($title: ID!) {
+                    upvote(title: $title) {
+                        title,
+                        votes
+                    }
+            }
+        `;
+        let bob;
+        let alice;
+        beforeEach(async () => {
+            bob = new User('Bob', 'bob@mail.com', 'bobby');
+            alice = new User('Alice', 'alice@mail.com', 'alice');
+            const { driver } = context();
+            const session = driver.session();
+            await User.save(session, bob);
+            await User.save(session, alice);
 
-        expect(error.message).toEqual('Not Authorised!');
+            const bobPost = new Post('Bob Post');
+            await Post.save(session, bobPost);
+
+            const linkBobWithPost = await session.writeTransaction((tx) =>
+              tx.run('MATCH (u: User {id: $id}), (p: Post {title: $title}) CREATE (u)-[:AUTHORED]->(p) RETURN u',
+                { id: bob.id, title: bobPost.title})
+            )
+            const linkAliceWithPost = await session.writeTransaction((tx) =>
+              tx.run('MATCH (u: User {id: $id}), (p: Post {title: $title}) CREATE (u)-[:LIKED]->(p) RETURN u',
+                { id: alice.id, title: bobPost.title})
+            );
+        });
+
+        it('does not upvote a post if unauthenticated', async () => {
+            const variables = { title: 'Bob Post'};
+            await expect(mutate( { mutation: UPVOTE_POST, variables })).resolves.toMatchObject({
+                errors: [
+                    expect.objectContaining({
+                        message: 'Not Authorised!'
+                    })
+                ],
+                data: {
+                    upvote: null
+                }
+            });
+        });
+
+        it('does not upvote a post if post does not exist', async () => {
+            const { authService } = context();
+            const variables = { title: 'Test Post'};
+            requestMock = { headers: { authorization: 'Bearer ' + authService.issueToken(bob.id)}};
+            await expect(mutate( { mutation: UPVOTE_POST, variables })).resolves.toMatchObject({
+                errors: [
+                    expect.objectContaining({
+                        message: "Post does not exist"
+                    })
+                ],
+                data: {
+                    upvote: null
+                }
+            });
+        });
+
+        it('does not upvote if already upvoted', async () => {
+            const { authService } = context();
+            requestMock = { headers: { authorization: 'Bearer ' + authService.issueToken(alice.id)}};
+
+            const variables = { title: 'Bob Post'};
+            await expect(mutate( { mutation: UPVOTE_POST, variables })).resolves.toMatchObject({
+                errors: [
+                    expect.objectContaining({
+                        message: "You have already upvoted this post."
+                    })
+                ],
+                data: {
+                    upvote: null
+                }
+            });
+        });
+
+        it('upvotes successfully', async () => {
+            const { authService } = context();
+            requestMock = { headers: { authorization: 'Bearer ' + authService.issueToken(bob.id)}};
+
+            const variables = { title: 'Bob Post'};
+            await expect(mutate( { mutation: UPVOTE_POST, variables })).resolves.toMatchObject({
+                errors: undefined,
+                data: {
+                    upvote: {
+                        title: 'Bob Post',
+                        votes: 1
+                    }
+                }
+            });
+        });
+
     });
-
-    it("upvotes a post - authorized", async () => {
-        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
-
-        const {
-            data:{upvote},
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
-
-        expect(upvote).toMatchObject({ title: "Atanas's Post 1", votes: 1 });
-    });
-
-    it("throws error because post does not exist", async () => {
-        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
-
-        const {
-            errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "nosuchpost" } });
-
-        expect(error.message).toEqual("Not Authorised!");
-    });
-
-    it("throws error because voter does not exist", async () => {
-        unvalidAuthToken = await authApi.createToken(uuidv4());
-        reqMock.headers = {authorization: 'Bearer ' + unvalidAuthToken};
-
-        const {
-            errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1", voter: { name: "bro" } } });
-
-        expect(error.message).toEqual("Not Authorised!");
-    });
-
-    it("throws error because voter already voted on this post", async () => {
-        reqMock.headers = {authorization: 'Bearer ' + atanas_auth_token};
-        const {
-            data:{upvote},
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
-
-        const {
-            errors: [error]
-        } = await mutate({ mutation: UPVOTE_POST, variables: { title: "Atanas's Post 1" } });
-
-        expect(error.message).toEqual("You've already upvoted this post");
-    })
 });

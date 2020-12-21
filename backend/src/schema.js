@@ -11,7 +11,7 @@ const gatewaySchema = stitchSchemas({
   resolvers
 });
 
-//const schemaWithSchields = applyMiddleware(gatewaySchema, permissions);
+const schemaWithSchields = applyMiddleware(gatewaySchema, permissions);
 
-module.exports = gatewaySchema;
+module.exports = schemaWithSchields;
 
