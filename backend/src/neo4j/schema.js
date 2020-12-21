@@ -2,18 +2,20 @@ const { makeAugmentedSchema } = require('neo4j-graphql-js');
 const { gql } = require('apollo-server');
 
 const typeDefs = gql`
-  type Post {
-    title: ID! 
-    votes: Int!
-    author: User! @relation(name: "AUTHORED", direction: "OUT")
-  }
-  
-  type User {
+   type User {
     id: ID! 
     name: String!
     email: String!
     password: String!
-    posts: [Post] @relation(name: "AUTHORED", direction: "IN")
+    posts: [Post] @relation(name: "AUTHORED", direction: "OUT")
+    likedPosts: [Post] @relation(name: "LIKED", direction: "OUT")
+  }
+  
+  type Post {
+    title: ID! 
+    votes: Int!
+    author: User! @relation(name: "AUTHORED", direction: "IN")
+    upvoters: [User] @relation(name: "LIKED", direction: "IN")
   }
 `;
 

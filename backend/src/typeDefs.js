@@ -16,6 +16,7 @@ const typeDefs = gql`
   input PostInput {
     title: String!
   }
+  
 `;
 
 module.exports = typeDefs;
