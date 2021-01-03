@@ -74,7 +74,6 @@ describe('Query', () => {
                 data: {
                     users: [
                         { name: 'Bob', posts: [ { title: 'Bob Post', votes: 0 } ] },
-
                         { name: 'Alice', posts: [ { title: 'Alice Post', votes: 0 } ] },
                     ]
                 }
