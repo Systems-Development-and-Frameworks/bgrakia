@@ -13,6 +13,7 @@ let requestMock;
 const context = () => actualContext({req: requestMock, authService});
 
 const cleanDatabase = async () => {
+    console.log(process.env.JWT_SECRET);
     const { driver } = context();
     await driver.session().writeTransaction(txc => txc.run("MATCH(n) DETACH DELETE n;"));
 }
