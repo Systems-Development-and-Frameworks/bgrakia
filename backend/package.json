@@ -5,7 +5,7 @@
   "main": "src/index.js",
   "scripts": {
     "serve": "DEBUG=neo4j-graphql-js node src/index.js",
-    "test": "jest",
+    "test": "NODE_ENV=test jest",
     "lint": "eslint --ext .js"
   },
   "keywords": [],
