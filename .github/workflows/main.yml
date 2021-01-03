@@ -36,7 +36,7 @@ jobs:
       - uses: actions/checkout@v2
       - uses: KarakoA/setup-neo4j@v1.1.1
         with:
-          passwort: NEO4J
+          password: NEO4J
       
       - name: Install Dependencies
         run: npm install
