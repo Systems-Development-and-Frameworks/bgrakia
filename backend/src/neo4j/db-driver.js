@@ -1,4 +1,6 @@
 const neo4j = require('neo4j-driver');
+const { NEO4J_USERNAME, NEO4J_PASSWORD } = require('../environment');
+
 // Transaction retry time is 30 seconds by default, which is reasonable.
 const driver = neo4j.driver(
   "bolt://localhost:7687",
