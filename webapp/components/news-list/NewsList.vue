@@ -36,7 +36,7 @@ export default {
   name: 'NewsList',
   components: { NewsItem, NewsForm },
   props: {
-    newsItems: [],
+    newsItems: {type: Array, default() { return [] } },
     descending: {type: Boolean, default: true},
   },
   methods: {
@@ -56,6 +56,7 @@ export default {
   },
   computed: {
     sortedItems: function() {
+
       return this.descending
         ?
         [...this.newsItems].sort((a, b) => b.votes - a.votes)
