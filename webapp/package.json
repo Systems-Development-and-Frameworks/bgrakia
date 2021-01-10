@@ -7,10 +7,12 @@
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate",
-    "test": "jest"
+    "test": "jest",
+    "lint": "eslint --ext .js"
   },
   "dependencies": {
     "core-js": "^3.6.5",
+    "eslint": "^7.17.0",
     "nuxt": "^2.14.6"
   },
   "devDependencies": {
