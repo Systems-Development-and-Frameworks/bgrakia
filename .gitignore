@@ -1,5 +1,6 @@
 /.idea/
 /webapp/coverage/
 /archive/
-
+/webapp/.nuxt-storybook
+/webapp/storybook-static
 git-crypt-key
