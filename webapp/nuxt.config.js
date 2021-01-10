@@ -37,7 +37,16 @@ export default {
 
   // Modules (https://go.nuxtjs.dev/config-modules)
   modules: [
+    '@nuxtjs/apollo'
   ],
+
+  apollo: {
+    clientConfigs: {
+      default: {
+        httpEndpoint: 'http://localhost:4000'
+      }
+    }
+  },
 
   // Vuetify module configuration (https://go.nuxtjs.dev/config-vuetify)
   vuetify: {
