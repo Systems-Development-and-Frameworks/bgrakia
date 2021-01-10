@@ -20,7 +20,8 @@ const permissions = shield({
       signup: allow,
       login: allow,// not(isAuthenticated, new Error("Already logged in. Redirect to home page.")),
       write: isAuthenticated,
-      upvote: isAuthenticated
+      upvote: isAuthenticated,
+      delete: isAuthenticated
     }
 }, {
   allowExternalErrors: true,

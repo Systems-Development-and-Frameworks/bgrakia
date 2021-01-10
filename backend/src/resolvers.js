@@ -177,6 +177,29 @@ const resolvers = {
       finally {
         await session.close();
       }
+    },
+    delete: async(parent, args, context, info) => {
+      const { title } = args;
+      const { token, authService, driver } = context;
+      const session = driver.session();
+
+      const { records: authorRecords} = await session.readTransaction((tx) =>
+        tx.run("MATCH (u: User)-[:AUTHORED]->(p: Post {title: $title}) RETURN u.id as uId", { title })
+      );
+
+      const authorId = authorRecords[0].get('uId');
+      if (authorId !== token.uId) {
+        throw new UserInputError("This is not your post!");
+      }
+
+      return await delegateToSchema({
+        schema: neo4jSchema,
+        operation: 'mutation',
+        fieldName: 'DeletePost',
+        args,
+        context,
+        info
+      })
     }
   },
 }
