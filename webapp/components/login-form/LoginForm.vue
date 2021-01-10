@@ -17,15 +17,16 @@
           <v-text-field
             v-model="credentials.password"
             :rules="pwdRules"
-            :counter="8"
             label="Password"
             required
+            type="password"
           ></v-text-field>
         </v-col>
       </v-row>
       <v-row>
         <v-col>
           <v-btn
+            v-on:submit.prevent
             class="mr-4"
             :disabled="!valid"
             @click="login"
@@ -55,18 +56,18 @@ export default {
         async login() {
             const creds = this.credentials;
             try {
-                const { data: { login }} = await this.$apollo.mutate({
+                const { data: { login } } = await this.$apollo.mutate({
                     mutation: gql`mutation login($email: String!, $password: String!) {
                         login(email: $email, password: $password)
                     }`,
                     variables: creds,
                 });
-                
 
                 await this.$apolloHelpers.onLogin(login); // Stores the token in a cookie called apollo-token
-                this.$store.commit('userStore/setPrincipal', login);
+                this.$store.commit('setPrincipal', login);
             }
-            catch (e) { console.log(e.message); }
+            catch (e) { 
+            }
         }
     },
    computed: {

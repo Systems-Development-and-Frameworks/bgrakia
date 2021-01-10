@@ -21,14 +21,20 @@ export default {
     methods: {
         async logout() {
             await this.$apolloHelpers.onLogout(); // Deletes the cookie containing the token
-            this.$store.commit('userStore/removePrincipal');
-        }
-        
+            this.$store.commit('removePrincipal');
+        },
     },
     computed: {
         ...mapGetters({
-            logged: 'userStore/isAuthenticated', 
+            logged: 'isAuthenticated', 
         })
     }
 }
 </script>
+
+<style scoped>
+    button a {
+        color: inherit;
+        text-decoration: none;
+    }
+</style>
