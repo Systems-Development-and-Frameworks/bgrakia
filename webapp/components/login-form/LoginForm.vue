@@ -49,7 +49,7 @@ export default {
         credentials: {
             "email": '',
             'password': '',
-        }
+        },
     }),
     methods: {
         async login() {
@@ -62,7 +62,9 @@ export default {
                     variables: creds,
                 });
                 
+
                 await this.$apolloHelpers.onLogin(login); // Stores the token in a cookie called apollo-token
+                this.$store.commit('userStore/setPrincipal', login);
             }
             catch (e) { console.log(e.message); }
         }
