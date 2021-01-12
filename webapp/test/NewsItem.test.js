@@ -9,9 +9,6 @@ require('regenerator-runtime/runtime');
 const localVue = createLocalVue();
 localVue.use(Vuex);
 
-const TITLE = 'Test-Title';
-const VOTES = 0;
-
 describe('NewsItem', () => {
 
 
@@ -123,7 +120,7 @@ describe('NewsItem', () => {
 
     const actualUpdatedNews = upvoteEvent[0][0];
     expect(actualUpdatedNews.title).toEqual('Test-Title');
-    expect(actualUpdatedNews.votes).toEqual(VOTES + 1);
+    expect(actualUpdatedNews.votes).toEqual(votes + 1);
   });
 
   it('should emit downvoting-updateNews event once downvote-button is clicked', async () => {
