@@ -135,32 +135,6 @@ describe('NewsList', () => {
     await testWrapper.vm.removeNews(      {title: "Title_2", votes: 4, author} );
     expect(deleteMutateMock).toBeCalled();
     expect(queryMock).toHaveBeenCalledTimes(2);
-
-
-     /* let item = testWrapper.findComponent(NewsItem)
-      item.find("button.remove").trigger('click');
-
-      await testWrapper.vm.$nextTick();
-
-      expect(item.emitted('removeNews')).toBeTruthy();
-
-      expect(wrapper.vm.newsItems.length).toBe(1);
-
-      // Do it one more time
-      item = wrapper.findComponent(NewsItem);
-
-      item.find("button.remove").trigger('click');
-
-      await wrapper.vm.$nextTick();
-
-      expect(item.emitted('removeNews')).toBeTruthy();
-
-      expect(wrapper.vm.newsItems.length).toBe(0);
-
-      let heading = wrapper.find("h2");
-      expect(heading.text()).toEqual("The list is empty :(")
-
-      wrapper.destroy();*/
   })
 
 
