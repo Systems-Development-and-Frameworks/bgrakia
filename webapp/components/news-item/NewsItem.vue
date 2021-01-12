@@ -30,7 +30,7 @@ export default {
       `;
       try {
         const { data: {upvote}} = await this.$apollo.mutate({
-          mutation, 
+          mutation,
           variables: { title: this.newsItem.title }
         })
         this.$emit('updateNews', {...this.newsItem, votes: upvote.votes});
@@ -50,7 +50,7 @@ export default {
       user: 'getPrincipal'
     }),
     ownsPost() {
-      return this.isAuth && this.user.id == this.newsItem.author.id;
+      return this.isAuth && this.user.id === this.newsItem.author.id;
     }
   }
 }
