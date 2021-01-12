@@ -37,9 +37,12 @@ import { mapGetters } from 'vuex'
 export default {
   name: 'NewsList',
   components: { NewsItem, NewsForm },
-  props: {
-    newsItems: {type: Array, default() { return [] } },
-    descending: {type: Boolean, default: true},
+
+  data: () => {
+    return {
+      newsItems: [],
+      descending: true,
+    }
   },
   methods: {
     updateNews(newsToUpdate) {
@@ -74,10 +77,9 @@ export default {
         }
       `;
       const variables = { post: { title } };
-      
       try {
           const { data: { write } } = await this.$apollo.mutate({ mutation, variables })
-          this.newsItems.push(write);
+          this.newsItems.push({ title: write.title, votes: write.votes, author: write.author});
       }
       catch (e) { console.log(e.message) }
     },
@@ -88,11 +90,11 @@ export default {
       const query = gql`
         query {
             posts {
-                title 
+                title
                 votes
                 author {
                   id
-                } 
+                }
             }
         }
       `;
@@ -100,14 +102,13 @@ export default {
         const { data: { posts }} = await this.$apollo.query( { query } );
         return posts;
       }
-      catch (e) { 
+      catch (e) {
         return [];
       }
     }
   },
   computed: {
     sortedItems: function() {
-
       return this.descending
         ?
         [...this.newsItems].sort((a, b) => b.votes - a.votes)
@@ -119,7 +120,7 @@ export default {
     },
   },
   async mounted() {
-    this.newsItems = await this.getNews(); 
+    this.newsItems = await this.getNews();
   },
 };
 </script>
