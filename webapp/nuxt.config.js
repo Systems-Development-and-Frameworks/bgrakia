@@ -34,6 +34,7 @@ export default {
   buildModules: [
     // https://go.nuxtjs.dev/vuetify
     '@nuxtjs/vuetify',
+    '@nuxtjs/pwa',
   ],
 
   // Modules (https://go.nuxtjs.dev/config-modules)
@@ -70,5 +71,17 @@ export default {
 
   // Build Configuration (https://go.nuxtjs.dev/config-build)
   build: {
+  },
+
+  pwa: {
+    manifest: {
+      name: 'BgRakia News App',
+      lang: 'en',
+      start_url: '/'
+    },
+    icon: {
+      fileName: 'favicon.ico'
+    }
   }
+
 }
