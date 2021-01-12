@@ -1,10 +1,11 @@
 <template>
-  <v-form v-model="valid">
+  <v-form v-model="isFormValid">
     <v-container>
       <v-row>
         <v-col>
           <v-text-field
             v-model="credentials.email"
+            id="email"
             :rules="nameRules"
             :counter="64"
             label="User name"
@@ -18,6 +19,7 @@
             v-model="credentials.password"
             :rules="pwdRules"
             label="Password"
+            id="password"
             required
             type="password"
           ></v-text-field>
@@ -27,8 +29,9 @@
         <v-col>
           <v-btn
             v-on:submit.prevent
+            id="login"
             class="mr-4"
-            :disabled="!valid"
+            :disabled="!isFormValid"
             @click="login"
           >
             Login
@@ -46,7 +49,7 @@ import gql from 'graphql-tag';
 export default {
     name: 'LoginForm',
     data: () => ({
-        valid: false,
+        isFormValid: false,
         credentials: {
             "email": '',
             'password': '',
@@ -66,23 +69,28 @@ export default {
                 await this.$apolloHelpers.onLogin(login); // Stores the token in a cookie called apollo-token
                 this.$store.commit('setPrincipal', login);
             }
-            catch (e) { 
+            catch (e) {
             }
         }
     },
    computed: {
-        nameRules() {
-            return [
-                name => !!name || 'User name is required!',
-                name => name.length <= 64 || 'User name cannot exceed 64 chars!'
-            ]
-        },
-        pwdRules() {
-            return [
-                pwd => !!pwd || 'Password is required',
-                pwd => pwd.length >= 8 || 'Password must be at least 8 chars!'
-            ]
-        }
-  },    
+      nameRules() {
+          return [
+              name => {
+                return !!name || 'User name is required!'
+              },
+              name => {
+                return name.length <= 64 || 'User name cannot exceed 64 chars!'
+              }
+          ]
+      },
+      pwdRules() {
+          return [
+              pwd => !!pwd || 'Password is required',
+              pwd => pwd.length >= 8 || 'Password must be at least 8 chars!'
+          ]
+      },
+
+  },
 }
 </script>
