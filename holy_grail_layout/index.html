@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <link rel="stylesheet" href="resources/index.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    <meta charset="UTF-8">
+    <title>Home</title>
+</head>
+<body>
+
+<div class="topnav" id="myTopnav">
+    <a href="index.html">Home</a>
+    <a href="service.html">Service</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="javascript:void(0);" class="icon" onclick="openSidenav()">
+        <i class="fa fa-bars"></i>
+    </a>
+</div>
+
+<div class="sidenav" id="mySidenav">
+    <a href="index.html">Home</a>
+    <a href="service.html">Service</a>
+    <a href="about.html">About</a>
+    <a href="contact.html">Contact</a>
+    <a href="javascript:void(0)" class="closebtn" onclick="closeNav()">&times;</a>
+</div>
+
+<header>
+    <h1>Holy Grail Layout</h1>
+    <p>yes it works!</p>
+</header>
+
+<div>
+    <p>Content</p>
+</div>
+
+<footer>
+    <h4>Authors: Mayk Akifovski and Atanas Denkov</h4>
+    <p><a href="https://github.com/Systems-Development-and-Frameworks/bgrakia">GitHub Repository</a></p>
+</footer>
+
+<script>
+    function openSidenav() {
+        document.getElementById("mySidenav").style.width = "250px";
+    }
+
+    function closeNav() {
+        document.getElementById("mySidenav").style.width = "0";
+    }
+</script>
+</body>
+</html>
