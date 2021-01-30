@@ -86,6 +86,25 @@ header {
     .sidenav {display: none}
 }
 
+.avatar img {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    size: auto;
+}
+
+.text p {
+    word-wrap: break-word;
+}
+
+.text h3 {
+    text-align: center;
+}
+
+.container-fluid {
+    margin: auto;
+}
+
 footer {
     position: fixed;
     left: 0;
