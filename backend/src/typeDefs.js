@@ -11,6 +11,7 @@ const typeDefs = gql`
     signup(name: String!, email: String!, password: String!): String
     write(post: PostInput!): Post
     upvote(title: ID!): Post
+    delete(title: ID!): Post
   }
   
   input PostInput {

@@ -15,7 +15,7 @@ const itemTitleTooLong = "This Text is longer than the accepted sixtyfour charac
 
 describe('NewsForm', () => {
 	let wrapper;
-	
+
 	beforeEach( () => {
 		Vue.use(Vuetify);
 		vuetify = new Vuetify();
@@ -24,40 +24,40 @@ describe('NewsForm', () => {
 			vuetify
 		});
 	})
-	
+
 	it('textfield contains the text entered', async () => {
 
 	const inputField = wrapper.find('input[type="text"]')
 	await inputField.setValue(itemTitle)
-      
+
 	expect(inputField.element.value).toBe('Fake News');
 
     });
-	
+
 	it('does accept less than 64 character', async () => {
 
 	const inputField = wrapper.find('input[type="text"]')
 	const btn = wrapper.find('[type="button"]')
-	
+
 	await inputField.setValue(itemTitle)
 	await inputField.trigger('input');
-      
+
 	expect(inputField.element.value).toBe('Fake News');
 	expect(btn.element.disabled).toBe(false);
 
     });
-	
+
 	it('does not accept more than 64 character', async () => {
-      
+
 	const inputField = wrapper.find('input[type="text"]')
 	const btn = wrapper.find('[type="button"]')
-	
+
 	await inputField.setValue(itemTitleTooLong)
-	await inputField.trigger('input');	
-      
+	await inputField.trigger('input');
+
 	expect(inputField.element.value).toBe('This Text is longer than the accepted sixtyfour characters! 1234567');
 	expect(btn.element.disabled).toBe(true);
 
-    });
-	
+  });
+
 })
